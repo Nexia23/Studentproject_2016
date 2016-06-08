@@ -30,7 +30,7 @@ def calc_cval(step,i):
             c_neighbor = C_t[step][j] * np.exp(-r[j] / lambda_) + c_neighbor
 
     c_value = c_neighbor + C_t[step][i]
-    print('c_value :'+ str(c_value))
+    #print('c_value :'+ str(c_value))
     C_i[i]=c_value
 
 
@@ -42,24 +42,34 @@ def calc_expterm(i):
             f_n = np.exp(-r[j]/lambda_)+f_n
     return f_n
 
-def get_state():                    #function to sum the current activated  cells and set concentration#
-    acti = 0
-    print(state)
+def set_state():                    #function to  set concentration#
+
+    #print(state)
     for j, val in enumerate(state):
         if val == 1:                #anyone with 1 is activ
-            acti += 1               #so added
             C_i[j]=C_on             #and concentration set for active cell
+        else:
+            C_i[j]=1                #or inactive than set for 1
+
+
+
+
+def neighbor(i):                    #function to sum the current activated neighboring cells #
+    acti = 0
+
+    for j, val in enumerate(state):
+        if val == 1 and j!=i :      #anyone else whos activ is counted
+            acti += 1
 
     return acti
 
 
-
-
-
-def switch (ci,acti):             # determine cell ci´s status for next step. acti: value of active cells#
+def switch (ci):             # determine cell ci´s status for next step.#
 
     f_n = calc_expterm(ci)
-    print('f_n ='+str(f_n))
+    acti=neighbor(ci)
+    print(acti)
+    #print('f_n ='+str(f_n))
     if feedback==1:
 
         #A_0 = 1 + f_n - K
@@ -90,19 +100,21 @@ timer=0
 
 for step in time:
 
-    current = get_state()
-    C_t.append(list(C_i))
+    set_state()
 
+    if timer==0:
+        C_t.append(list(C_i))
 
     for i in range(len(C_i)):
         calc_cval(timer,i)
 
     for j in range(len(C_i)):
-        switch(j, current)
+        switch(j)
+
     timer+=1
     state_t.append(list(state))
+    C_t.append(list(C_i))
 
-
-
+print(C_t)
 print(state_t)
 
