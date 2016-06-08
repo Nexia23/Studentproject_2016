@@ -47,28 +47,29 @@ def set_state():                    #function to  set concentration#
     #print(state)
     for j, val in enumerate(state):
         if val == 1:                #anyone with 1 is activ
-            C_i[j]=C_on             #and concentration set for active cell
+            C_i[j]=C_on             #and concentration is set on c_on for active cell
         else:
-            C_i[j]=1                #or inactive than set for 1
+            C_i[j]=1                #or inactive than set to 1
 
 
 
 
-def neighbor(i):                    #function to sum the current activated neighboring cells #
+def neighbor(step,i):                    #function to sum the current activated neighboring cells #
     acti = 0
 
-    for j, val in enumerate(state):
+    for j, val in enumerate(state_t[step]):
         if val == 1 and j!=i :      #anyone else whos activ is counted
             acti += 1
 
     return acti
 
 
-def switch (ci):             # determine cell ci´s status for next step.#
+def switch (step,ci):             # determine cell ci´s status for next step.#
 
     f_n = calc_expterm(ci)
-    acti=neighbor(ci)
-    print(acti)
+    acti=neighbor(step,ci)
+
+    #print('Soviele active drum rum '+str(ci)+' '+str(acti))
     #print('f_n ='+str(f_n))
     if feedback==1:
 
@@ -109,7 +110,7 @@ for step in time:
         calc_cval(timer,i)
 
     for j in range(len(C_i)):
-        switch(j)
+        switch(timer,j)
 
     timer+=1
     state_t.append(list(state))
