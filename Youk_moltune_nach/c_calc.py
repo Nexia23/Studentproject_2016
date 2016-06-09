@@ -13,14 +13,14 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 #Parametersettings
 
 x=10                         #sets gridsize
-n=3                          #sets number of cells
+n=2                          #sets number of cells
 pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
 
 feedback = 0                 #positiv(1) or negative(0) feedback#
 
 r = np.arange(n)            #list of cellposition in space#
-state=[0,0,1]                #list of default state of each cell#
-C_i = np.arange(len(r))      # concentration of each cell at time i #
+state=np.arange(n)                #list of default state of each cell#
+C_i = np.arange(n)      # concentration of each cell at time i #
 
 C_on=5                     #signalconcentration of activ cel#
 K =  1                      #threshold c#
@@ -28,7 +28,7 @@ K =  1                      #threshold c#
 #outputdata
 
 C_t=[]                       # concentrations at time step#
-state_t=[list(state)]        #lists all individual cellstates at timestep#
+state_t=[]        #lists all individual cellstates at timestep#
 
 
 
@@ -71,9 +71,9 @@ def calc_expterm(i):
             f_n = np.exp(-r[j]/lambda_)+f_n
     return f_n
 
+
 def set_state():                    #function to  set concentration#
 
-    #print(state)
     for j, val in enumerate(state):
         if val == 1:                #anyone with 1 is activ
             C_i[j]=C_on             #and concentration is set on c_on for active cell
@@ -159,7 +159,10 @@ def update(end):
     stop = end
     time = np.linspace(start, stop, 10)
     timer=0
-
+    i = 0
+    while i < n:
+        state[i] = rd.randint(0, 1)  # produce random state
+        i += 1
 
     for step in time:
 
@@ -167,6 +170,7 @@ def update(end):
 
         if timer==0:
             C_t.append(list(C_i))
+            state_t.append(list(state))
 
         for i in range(len(C_i)):
             calc_cval(timer,i)
