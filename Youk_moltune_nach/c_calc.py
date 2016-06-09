@@ -15,12 +15,12 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 feedback = 1                 #positiv(1) or negative(0) feedback#
 
 r = [0.1,0.1,0.1]            #list of cellposition in space#
-state=[1,1,1]                #list of default state of each cell#
+state=[0,0,1]                #list of default state of each cell#
 C_i = np.arange(len(r))      # concentration of each cell at time i #
 
 
-C_on=10                      #signalconcentration of activ cel#
-K =  2                      #threshold c#
+C_on=5                     #signalconcentration of activ cel#
+K =  1                      #threshold c#
 
 #outputdata
 
@@ -74,20 +74,21 @@ def switch (step,ci):             # determine cell ci´s status for next step.#
 
     f_n = calc_expterm(ci)
     acti=neighbor(step,ci)
-    f_n=0.2
+
     #print('Soviele active drum rum '+str(ci)+' '+str(acti))
     #print('f_n ='+str(f_n))
 
     # A_0 = 1 + f_n - K
-    A_n = C_i[ci] - K / f_n + (1 + (len(state) - acti) * f_n) / f_n  # activation  threshold
+    A_n = C_on + (1-K) / f_n #+ (1 + (len(state) - acti) * f_n) / f_n  # activation  threshold
     # D_0 = C_i[ci] - K + f_n
-    D_n = C_i[ci] - K / (f_n + 1) + (1 + (acti) * f_n) / (1 + f_n)  # deactivation threshold
+    D_n = C_on - K / (f_n + 1)# + (1 + (acti) * f_n) / (1 + f_n)  # deactivation threshold
 
 
     if feedback==1:           #positiv feedback
 
-        print('A_n ='+str(A_n))
-        print('D_n ='+str(D_n))
+        #print('A_n ='+str(A_n))
+        #print('D_n ='+str(D_n))
+        #print('C_i =' + str(C_i[ci]))
 
         if C_i[ci]>= A_n:   #if > than active in next state
             state[ci]=1
@@ -107,24 +108,27 @@ def switch (step,ci):             # determine cell ci´s status for next step.#
 
     if feedback == 0:  # negativ feedback#
 
-        print('A_n ='+str(A_n))
-        print('D_n ='+str(D_n))
+        #print('A_n ='+str(A_n))
+        #print('D_n ='+str(D_n))
+        #print('C_i =' + str(C_i[ci]))
 
         if C_i[ci] >= A_n:  # if > than deactive in next state#
                 state[ci] = 0
                 C_i[ci] = 1
 
-        if C_i[ci] <= D_n:  # if < than active in next state#
+        elif C_i[ci] <= D_n:  # if < than active in next state#
             state[ci] = 1
             C_i[ci] = C_on
 
-        if C_i[ci] >= D_n and C_i[ci] <= A_n:  # if inbetween flipflop#
-            if state[ci] == 0:
-                state[ci] = 1
-                C_i[ci] = C_on
-            else:
-                state[ci] = 0
-                C_i[ci] = 1
+
+        elif C_i[ci] >= D_n and C_i[ci] <= A_n:  # if inbetween flipflop#
+
+                if state[ci] == 0:
+                    state[ci] = 1
+                    C_i[ci] = C_on
+                else:
+                    state[ci] = 0
+                    C_i[ci] = 1
 
 def update(end):
     start=0
@@ -153,4 +157,4 @@ def update(end):
     print(C_t)
     print(state_t)
 
-update(100)
+update(1)
