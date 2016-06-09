@@ -11,15 +11,21 @@ bruch = diff_const/gamma_
 lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 
 #Parametersettings
+
 feedback = 1                 #positiv(1) or negative(0) feedback#
 
 r = [0.1,0.1,0.1]            #list of cellposition in space#
-state=[1,0,0]                #list of default state of each cell#
+state=[1,1,1]                #list of default state of each cell#
 C_i = np.arange(len(r))      # concentration of each cell at time i #
-C_t=[]                       # concentrations at time step#
 
-C_on=23                      #signalconcentration of activ cel#
-K =  13                      #threshold c#
+
+C_on=10                      #signalconcentration of activ cel#
+K =  2                      #threshold c#
+
+#outputdata
+
+C_t=[]                       # concentrations at time step#
+state_t=[list(state)]        #lists all individual cellstates in one entry#
 
 
 
@@ -68,54 +74,83 @@ def switch (step,ci):             # determine cell ci´s status for next step.#
 
     f_n = calc_expterm(ci)
     acti=neighbor(step,ci)
-
+    f_n=0.2
     #print('Soviele active drum rum '+str(ci)+' '+str(acti))
     #print('f_n ='+str(f_n))
-    if feedback==1:
 
-        #A_0 = 1 + f_n - K
-        A_n = C_i[ci] - K / f_n + (1 + (len(state) - acti) * f_n) / f_n  #activation threshold
-        #D_0 = C_i[ci] - K + f_n
-        D_n = C_i[ci] - K / (f_n + 1) + (1 + (acti) * f_n) / (1 + f_n)   #deactivation threshold
+    # A_0 = 1 + f_n - K
+    A_n = C_i[ci] - K / f_n + (1 + (len(state) - acti) * f_n) / f_n  # activation  threshold
+    # D_0 = C_i[ci] - K + f_n
+    D_n = C_i[ci] - K / (f_n + 1) + (1 + (acti) * f_n) / (1 + f_n)  # deactivation threshold
 
-        #print('A_n ='+str(A_n))
-        #print('D_n ='+str(D_n))
+
+    if feedback==1:           #positiv feedback
+
+        print('A_n ='+str(A_n))
+        print('D_n ='+str(D_n))
 
         if C_i[ci]>= A_n:   #if > than active in next state
             state[ci]=1
             C_i[ci]=C_on
 
-
         if C_i[ci]<= D_n:   # if < than deactive in next state
             state[ci]=0
             C_i[ci]=1
 
+        if C_i[ci] >= D_n and C_i[ci]<=A_n:  # if inbetween bistable#
+            if state[ci] == 0:
+                state[ci]=0
+                C_i[ci] = 1
+            else:
+                state[ci]=1
+                C_i[ci]=C_on
 
+    if feedback == 0:  # negativ feedback#
 
+        print('A_n ='+str(A_n))
+        print('D_n ='+str(D_n))
 
-start=0
-end= 10
-time = np.linspace(start, end, 10)
-state_t=[list(state)]
-timer=0
+        if C_i[ci] >= A_n:  # if > than deactive in next state#
+                state[ci] = 0
+                C_i[ci] = 1
 
-for step in time:
+        if C_i[ci] <= D_n:  # if < than active in next state#
+            state[ci] = 1
+            C_i[ci] = C_on
 
-    set_state()
+        if C_i[ci] >= D_n and C_i[ci] <= A_n:  # if inbetween flipflop#
+            if state[ci] == 0:
+                state[ci] = 1
+                C_i[ci] = C_on
+            else:
+                state[ci] = 0
+                C_i[ci] = 1
 
-    if timer==0:
+def update(end):
+    start=0
+    stop = end
+    time = np.linspace(start, stop, 10)
+
+    timer=0
+
+    for step in time:
+
+        set_state()
+
+        if timer==0:
+            C_t.append(list(C_i))
+
+        for i in range(len(C_i)):
+            calc_cval(timer,i)
+
+        for j in range(len(C_i)):
+            switch(timer,j)
+
+        timer+=1
+        state_t.append(list(state))
         C_t.append(list(C_i))
 
-    for i in range(len(C_i)):
-        calc_cval(timer,i)
+    print(C_t)
+    print(state_t)
 
-    for j in range(len(C_i)):
-        switch(timer,j)
-
-    timer+=1
-    state_t.append(list(state))
-    C_t.append(list(C_i))
-
-print(C_t)
-print(state_t)
-
+update(100)
