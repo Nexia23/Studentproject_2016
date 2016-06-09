@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-
+import random as rd
 
 #Variablen fuer Cgradient#
 
@@ -12,12 +12,15 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 
 #Parametersettings
 
-feedback = 1                 #positiv(1) or negative(0) feedback#
+x=10                         #sets gridsize
+n=3                          #sets number of cells
+pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
 
-r = [0.1,0.1,0.1]            #list of cellposition in space#
+feedback = 0                 #positiv(1) or negative(0) feedback#
+
+r = np.arange(n)            #list of cellposition in space#
 state=[0,0,1]                #list of default state of each cell#
 C_i = np.arange(len(r))      # concentration of each cell at time i #
-
 
 C_on=5                     #signalconcentration of activ cel#
 K =  1                      #threshold c#
@@ -25,12 +28,32 @@ K =  1                      #threshold c#
 #outputdata
 
 C_t=[]                       # concentrations at time step#
-state_t=[list(state)]        #lists all individual cellstates in one entry#
+state_t=[list(state)]        #lists all individual cellstates at timestep#
 
+
+
+
+def calcDistances(c_num):
+    for i in range(len(r)):
+        r[i] = math.sqrt((pos[i][0] - pos[c_num][0]) ** 2 + (pos[i][1] - pos[c_num][1]) ** 2)
+
+    return r
+
+
+def setup(n,x):                                 #creats n-cells with random position in x*x grid and state
+    i=0
+    r=np.arange(n)
+    C_i = np.arange(len(r))                     # concentration of each cell at time i #
+    state=np.arange(n)
+    pos = {i: [rd.randint(0, x), rd.randint(0, x)] for i in range(n)}
+    while i <= n:
+        state[i]=rd.randint(0,1)                #produce random state
+        i+=1
 
 
 def calc_cval(step,i):
     c_neighbor = 0
+    calcDistances(i)
     for j in range(len(C_i)):                #nachbarzellen_c aufaddieren
         if j!=i:
             c_neighbor = C_t[step][j] * np.exp(-r[j] / lambda_) + c_neighbor
@@ -42,7 +65,7 @@ def calc_cval(step,i):
 
 def calc_expterm(i):
     f_n = 0
-
+    calcDistances(i)
     for j in range(len(r)):          #calc the signal strengh f_n for cell i #
         if j != i:
             f_n = np.exp(-r[j]/lambda_)+f_n
@@ -94,11 +117,11 @@ def switch (step,ci):             # determine cell ci´s status for next step.#
             state[ci]=1
             C_i[ci]=C_on
 
-        if C_i[ci]<= D_n:   # if < than deactive in next state
+        elif C_i[ci]<= D_n:   # if < than deactive in next state
             state[ci]=0
             C_i[ci]=1
 
-        if C_i[ci] >= D_n and C_i[ci]<=A_n:  # if inbetween bistable#
+        elif C_i[ci] >= D_n and C_i[ci]<=A_n:  # if inbetween bistable#
             if state[ci] == 0:
                 state[ci]=0
                 C_i[ci] = 1
@@ -131,11 +154,12 @@ def switch (step,ci):             # determine cell ci´s status for next step.#
                     C_i[ci] = 1
 
 def update(end):
+
     start=0
     stop = end
     time = np.linspace(start, stop, 10)
-
     timer=0
+
 
     for step in time:
 
@@ -157,4 +181,6 @@ def update(end):
     print(C_t)
     print(state_t)
 
+
+print(pos)
 update(1)
