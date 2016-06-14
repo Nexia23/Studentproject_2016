@@ -6,14 +6,14 @@ import random as rd
 #Variablen fuer Cgradient#
 
 gamma_ = 1                   #degradations constant#
-diff_const = 0.2             #diffusions constant#
+diff_const = 0.1             #diffusions constant#
 bruch = diff_const/gamma_
 lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 
 #Parametersettings
 
 x=10                         #sets gridsize
-n=2                          #sets number of cells
+n=100                          #sets number of cells
 pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
 
 feedback = 0                 #positiv(1) or negative(0) feedback#
@@ -93,7 +93,7 @@ def neighbor(step,i):                    #function to sum the current activated 
     return acti
 
 
-def switch (step,ci):             # determine cell ci´s status for next step.#
+def switch (step,ci):             # determine cell cis status for next step.#
 
     f_n = calc_expterm(ci)
     acti=neighbor(step,ci)
@@ -182,9 +182,19 @@ def update(end):
         state_t.append(list(state))
         C_t.append(list(C_i))
 
+        fig = plt.figure()
+        plt.axis([-1, x + 1, -1, x + 1])
+        for i in pos.keys():
+            if state[i] == 1:
+                plt.plot(pos[i][0], pos[i][1], 'ro')
+            else:
+                plt.plot(pos[i][0], pos[i][1], 'bo')
+
     print(C_t)
     print(state_t)
 
 
 print(pos)
 update(1)
+
+plt.show()
