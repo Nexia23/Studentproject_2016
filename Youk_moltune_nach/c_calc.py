@@ -13,16 +13,17 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 #Parametersettings
 
 x=10                         #sets gridsize
-n=100                          #sets number of cells
+n=3                         #sets number of cells
 pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
 
-feedback = 0                 #positiv(1) or negative(0) feedback#
+feedback = 1                 #positiv(1) or negative(0) feedback#
 
-r = np.arange(n)            #list of cellposition in space#
-state=np.arange(n)                #list of default state of each cell#
-C_i = np.arange(n)      # concentration of each cell at time i #
+r = np.zeros(n)            #list of cellposition in space#
+#print(r)
+state=np.arange(n)          #list of default state of each cell#
+C_i = np.zeros(n)          # concentration of each cell at time i #
 
-C_on=5                     #signalconcentration of activ cel#
+C_on=5                      #signalconcentration of activ cel#
 K =  1                      #threshold c#
 
 #outputdata
@@ -36,6 +37,7 @@ state_t=[]        #lists all individual cellstates at timestep#
 def calcDistances(c_num):
     for i in range(len(r)):
         r[i] = math.sqrt((pos[i][0] - pos[c_num][0]) ** 2 + (pos[i][1] - pos[c_num][1]) ** 2)
+        #print(r[i])
 
     return r
 
@@ -54,12 +56,13 @@ def setup(n,x):                                 #creats n-cells with random posi
 def calc_cval(step,i):
     c_neighbor = 0
     calcDistances(i)
+    #print(r)
     for j in range(len(C_i)):                #nachbarzellen_c aufaddieren
         if j!=i:
             c_neighbor = C_t[step][j] * np.exp(-r[j] / lambda_) + c_neighbor
 
     c_value = c_neighbor + C_t[step][i]
-    #print('c_value :'+ str(c_value))
+    #print('c_value :'+ str(c_neighbor))
     C_i[i]=c_value
 
 
@@ -109,9 +112,9 @@ def switch (step,ci):             # determine cell cis status for next step.#
 
     if feedback==1:           #positiv feedback
 
-        #print('A_n ='+str(A_n))
-        #print('D_n ='+str(D_n))
-        #print('C_i =' + str(C_i[ci]))
+        print('A_n ='+str(A_n))
+        print('D_n ='+str(D_n))
+        print('C_i =' + str(C_i[ci]))
 
         if C_i[ci]>= A_n:   #if > than active in next state
             state[ci]=1
@@ -154,12 +157,13 @@ def switch (step,ci):             # determine cell cis status for next step.#
                     C_i[ci] = 1
 
 def update(end):
-
+    plt.style.use('ggplot')
     start=0
     stop = end
     time = np.linspace(start, stop, 10)
     timer=0
     i = 0
+    print(len(time))
     while i < n:
         state[i] = rd.randint(0, 1)  # produce random state
         i += 1
@@ -168,33 +172,59 @@ def update(end):
 
         set_state()
 
-        if timer==0:
+        if timer==0:                             #saves initial status of system
             C_t.append(list(C_i))
             state_t.append(list(state))
 
-        for i in range(len(C_i)):
+            fig = plt.figure()
+
+            fig.suptitle('Cell position and state', fontsize=16)
+            star=plt.subplot(3, 1, 1)
+            star.set_title('Inital state')
+            star.axis([-1, x + 1, -1, x + 1])         #plot of state/cell position
+            for i in pos.keys():
+                if state[i] == 1:                    #if on red dot
+                    plt.plot(pos[i][0], pos[i][1], 'ro')
+                else:                                #else(if off) blue dot
+                    plt.plot(pos[i][0], pos[i][1], 'bo')
+
+        for i in range(len(C_i)):                 #calc actual c for cell
             calc_cval(timer,i)
 
-        for j in range(len(C_i)):
+        for j in range(len(C_i)):                 #determine cells behaviour
             switch(timer,j)
 
         timer+=1
-        state_t.append(list(state))
-        C_t.append(list(C_i))
+        state_t.append(list(state))              #saves status
+        C_t.append(list(C_i))                    #saves set c of cells
 
-        fig = plt.figure()
-        plt.axis([-1, x + 1, -1, x + 1])
-        for i in pos.keys():
-            if state[i] == 1:
-                plt.plot(pos[i][0], pos[i][1], 'ro')
-            else:
-                plt.plot(pos[i][0], pos[i][1], 'bo')
+
+        if timer*2==len(time):
+
+            mid=plt.subplot(3, 1, 2)
+            mid.set_title('Halftime state')
+            mid.axis([-1, x + 1, -1, x + 1])               #plot of state/cell position
+            for i in pos.keys():
+                if state[i] == 1:                         #if on red dot
+                    plt.plot(pos[i][0], pos[i][1], 'ro')
+                else:                                    #else(if off) blue dot
+                    plt.plot(pos[i][0], pos[i][1], 'bo')
+        if timer == len(time):
+
+            det=plt.subplot(3, 1, 3)
+            det.set_title('End state')
+            det.axis([-1, x + 1, -1, x + 1])  # plot of state/cell position
+            for i in pos.keys():
+                if state[i] == 1:  # if on red dot
+                    plt.plot(pos[i][0], pos[i][1], 'ro')
+                else:  # else(if off) blue dot
+                    plt.plot(pos[i][0], pos[i][1], 'bo')
 
     print(C_t)
     print(state_t)
 
 
 print(pos)
-update(1)
+update(10)
 
 plt.show()
