@@ -31,7 +31,14 @@ K =  1                      #threshold c#
 C_t=[]                       # concentrations at time step#
 state_t=[]        #lists all individual cellstates at timestep#
 
-
+parameter = 'C_on = ' + str(C_on) \
+            + ' K = ' + str(K) \
+            + ' n = ' + str(n) \
+            + ' gamma  = ' + str(gamma_) \
+            + ' diffconst =' + str(diff_const) \
+            + ' feedback = ' + str(feedback) \
+            + ' x = ' + str(x)\
+            +'.png'
 
 
 def calcDistances(c_num):
@@ -41,16 +48,6 @@ def calcDistances(c_num):
 
     return r
 
-
-def setup(n,x):                                 #creats n-cells with random position in x*x grid and state
-    i=0
-    r=np.arange(n)
-    C_i = np.arange(len(r))                     # concentration of each cell at time i #
-    state=np.arange(n)
-    pos = {i: [rd.randint(0, x), rd.randint(0, x)] for i in range(n)}
-    while i <= n:
-        state[i]=rd.randint(0,1)                #produce random state
-        i+=1
 
 
 def calc_cval(step,i):
@@ -176,12 +173,17 @@ def update(end):
             C_t.append(list(C_i))
             state_t.append(list(state))
 
-            fig = plt.figure()
 
+            fig = plt.figure()
             fig.suptitle('Cell position and state', fontsize=16)
+
+
+
             star=plt.subplot(3, 1, 1)
             star.set_title('Inital state')
             star.axis([-1, x + 1, -1, x + 1])         #plot of state/cell position
+
+
             for i in pos.keys():
                 if state[i] == 1:                    #if on red dot
                     plt.plot(pos[i][0], pos[i][1], 'ro')
@@ -219,12 +221,14 @@ def update(end):
                     plt.plot(pos[i][0], pos[i][1], 'ro')
                 else:  # else(if off) blue dot
                     plt.plot(pos[i][0], pos[i][1], 'bo')
+            fig.savefig(parameter, dpi=600, format='png', bbox_inches='tight')
+
 
     print(C_t)
     print(state_t)
 
 
-print(pos)
-update(10)
+print(parameter)
+update(1)
 
 plt.show()
