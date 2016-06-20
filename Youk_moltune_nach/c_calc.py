@@ -13,7 +13,7 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 #Parametersettings
 
 x=10                         #sets gridsize
-n=3                         #sets number of cells
+n=75                         #sets number of cells
 pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
 
 feedback = 1                 #positiv(1) or negative(0) feedback#
@@ -74,11 +74,18 @@ def calc_expterm(i):
 
 def set_state():                    #function to  set concentration#
 
-    for j, val in enumerate(state):
-        if val == 1:                #anyone with 1 is activ
-            C_i[j]=C_on             #and concentration is set on c_on for active cell
-        else:
-            C_i[j]=1                #or inactive than set to 1
+    if feedback==1:
+        for j, val in enumerate(state):
+            if val == 1:                #anyone with 1 is activ
+                C_i[j]=C_on             #and concentration is set on c_on for active cell
+            else:
+                C_i[j]=1                #or inactive than set to 1
+    elif feedback==0:
+        for j, val in enumerate(state):
+            if val == 0:  # anyone with 1 is activ
+                C_i[j] = C_on  # and concentration is set on c_on for active cell
+            else:
+                C_i[j] = 1  # or inactive than set to 1
 
 
 
@@ -109,9 +116,9 @@ def switch (step,ci):             # determine cell cis status for next step.#
 
     if feedback==1:           #positiv feedback
 
-        print('A_n ='+str(A_n))
-        print('D_n ='+str(D_n))
-        print('C_i =' + str(C_i[ci]))
+        #print('A_n ='+str(A_n))
+        #print('D_n ='+str(D_n))
+        #print('C_i =' + str(C_i[ci]))
 
         if C_i[ci]>= A_n:   #if > than active in next state
             state[ci]=1
@@ -129,11 +136,11 @@ def switch (step,ci):             # determine cell cis status for next step.#
                 state[ci]=1
                 C_i[ci]=C_on
 
-    if feedback == 0:  # negativ feedback#
+    elif feedback == 0:  # negativ feedback#
 
-        #print('A_n ='+str(A_n))
-        #print('D_n ='+str(D_n))
-        #print('C_i =' + str(C_i[ci]))
+        print('A_n ='+str(A_n))
+        print('D_n ='+str(D_n))
+        print('C_i =' + str(C_i[ci]))
 
         if C_i[ci] >= A_n:  # if > than deactive in next state#
                 state[ci] = 0
@@ -157,13 +164,14 @@ def update(end):
     plt.style.use('ggplot')
     start=0
     stop = end
-    time = np.linspace(start, stop, 10)
+    time = np.linspace(start, stop, end*10)
     timer=0
     i = 0
     print(len(time))
     while i < n:
         state[i] = rd.randint(0, 1)  # produce random state
         i += 1
+    stat_p=str(state)
 
     for step in time:
 
@@ -196,11 +204,11 @@ def update(end):
         for j in range(len(C_i)):                 #determine cells behaviour
             switch(timer,j)
 
-        timer+=1
+
         state_t.append(list(state))              #saves status
         C_t.append(list(C_i))                    #saves set c of cells
 
-
+        timer += 1
         if timer*2==len(time):
 
             mid=plt.subplot(3, 1, 2)
@@ -211,7 +219,8 @@ def update(end):
                     plt.plot(pos[i][0], pos[i][1], 'ro')
                 else:                                    #else(if off) blue dot
                     plt.plot(pos[i][0], pos[i][1], 'bo')
-        if timer == len(time):
+
+        if timer == len(time)-1:
 
             det=plt.subplot(3, 1, 3)
             det.set_title('End state')
@@ -229,6 +238,7 @@ def update(end):
 
 
 print(parameter)
-update(1)
+update(10)
+#plt.legend( ('red=On-state', 'blue=Off-state'), shadow=False, fontsize='x-large')
 
 plt.show()
