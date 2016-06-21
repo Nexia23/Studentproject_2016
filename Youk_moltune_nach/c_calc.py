@@ -13,13 +13,12 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 #Parametersettings
 
 x=10                         #sets gridsize
-n=75                         #sets number of cells
+n=150                         #sets number of cells
 pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
 
 feedback = 1                 #positiv(1) or negative(0) feedback#
 
 r = np.zeros(n)            #list of cellposition in space#
-#print(r)
 state=np.arange(n)          #list of default state of each cell#
 C_i = np.zeros(n)          # concentration of each cell at time i #
 
@@ -59,7 +58,7 @@ def calc_cval(step,i):
             c_neighbor = C_t[step][j] * np.exp(-r[j] / lambda_) + c_neighbor
 
     c_value = c_neighbor + C_t[step][i]
-    #print('c_value :'+ str(c_neighbor))
+    print('c_value :'+ str(c_neighbor))
     C_i[i]=c_value
 
 
@@ -80,6 +79,7 @@ def set_state():                    #function to  set concentration#
                 C_i[j]=C_on             #and concentration is set on c_on for active cell
             else:
                 C_i[j]=1                #or inactive than set to 1
+
     elif feedback==0:
         for j, val in enumerate(state):
             if val == 0:  # anyone with 1 is activ
@@ -108,10 +108,13 @@ def switch (step,ci):             # determine cell cis status for next step.#
     #print('Soviele active drum rum '+str(ci)+' '+str(acti))
     #print('f_n ='+str(f_n))
 
-    # A_0 = 1 + f_n - K
-    A_n = C_on + (1-K) / f_n #+ (1 + (len(state) - acti) * f_n) / f_n  # activation  threshold
-    # D_0 = C_i[ci] - K + f_n
-    D_n = C_on - K / (f_n + 1)# + (1 + (acti) * f_n) / (1 + f_n)  # deactivation threshold
+    A_0 = 1 + f_n - K
+    A_n = C_on + (1-K) / f_n
+    #+ (1 + (len(state) - acti) * f_n) / f_n  # activation  threshold
+
+    D_0 = C_i[ci] - K + f_n
+    D_n = C_on - K / (f_n + 1)
+    # + (1 + (acti) * f_n) / (1 + f_n)  # deactivation threshold
 
 
     if feedback==1:           #positiv feedback
@@ -120,15 +123,15 @@ def switch (step,ci):             # determine cell cis status for next step.#
         #print('D_n ='+str(D_n))
         #print('C_i =' + str(C_i[ci]))
 
-        if C_i[ci]>= A_n:   #if > than active in next state
+        if C_i[ci]>= A_n and C_i[ci]<= A_0 :   #if true than active in next state cause of neighbor
             state[ci]=1
             C_i[ci]=C_on
 
-        elif C_i[ci]<= D_n:   # if < than deactive in next state
+        elif C_i[ci]>= D_n and C_i[ci]<=D_0:   # if < than deactive in next state
             state[ci]=0
             C_i[ci]=1
 
-        elif C_i[ci] >= D_n and C_i[ci]<=A_n:  # if inbetween bistable#
+        elif C_i[ci] >= D_0 and C_i[ci]<=A_n:  # if inbetween bistable#
             if state[ci] == 0:
                 state[ci]=0
                 C_i[ci] = 1
@@ -136,7 +139,7 @@ def switch (step,ci):             # determine cell cis status for next step.#
                 state[ci]=1
                 C_i[ci]=C_on
 
-    elif feedback == 0:  # negativ feedback#
+    elif feedback == 0:  # negative feedback#
 
         print('A_n ='+str(A_n))
         print('D_n ='+str(D_n))
@@ -151,7 +154,7 @@ def switch (step,ci):             # determine cell cis status for next step.#
             C_i[ci] = C_on
 
 
-        elif C_i[ci] >= D_n and C_i[ci] <= A_n:  # if inbetween flipflop#
+        elif C_i[ci] >= D_n and C_i[ci] <= A_n:  # if in between flipflop#
 
                 if state[ci] == 0:
                     state[ci] = 1
@@ -161,17 +164,20 @@ def switch (step,ci):             # determine cell cis status for next step.#
                     C_i[ci] = 1
 
 def update(end):
+
     plt.style.use('ggplot')
     start=0
     stop = end
     time = np.linspace(start, stop, end*10)
     timer=0
     i = 0
-    print(len(time))
+
+
     while i < n:
         state[i] = rd.randint(0, 1)  # produce random state
         i += 1
     stat_p=str(state)
+
 
     for step in time:
 
@@ -198,9 +204,10 @@ def update(end):
                 else:                                #else(if off) blue dot
                     plt.plot(pos[i][0], pos[i][1], 'bo')
 
+
         for i in range(len(C_i)):                 #calc actual c for cell
             calc_cval(timer,i)
-
+        print(C_i)
         for j in range(len(C_i)):                 #determine cells behaviour
             switch(timer,j)
 
@@ -219,6 +226,8 @@ def update(end):
                     plt.plot(pos[i][0], pos[i][1], 'ro')
                 else:                                    #else(if off) blue dot
                     plt.plot(pos[i][0], pos[i][1], 'bo')
+
+
 
         if timer == len(time)-1:
 
@@ -239,6 +248,4 @@ def update(end):
 
 print(parameter)
 update(10)
-#plt.legend( ('red=On-state', 'blue=Off-state'), shadow=False, fontsize='x-large')
-
 plt.show()
