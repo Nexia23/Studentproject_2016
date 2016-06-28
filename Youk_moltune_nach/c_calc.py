@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import random as rd
-
+import hl
 #Variablen fuer Cgradient#
 
 gamma_ = 1                   #degradations constant#
@@ -13,17 +13,25 @@ lambda_ = math.sqrt(bruch)   #radius of signalcloud of cell#
 #Parametersettings
 
 x=10                         #sets gridsize
-n=150                         #sets number of cells
-pos={i: [rd.randint(0, x),rd.randint(0,x)] for i in range(n)} # dict for cell positions#
+n=1                         #sets chance of cells (1/n)
+pos={}
+ce=0
+
+for a in range(x):
+    for b in range(x):
+        put=rd.randint(1, n)
+        if put== n:
+            pos[ce]=[a,b] # dict for cell positions#
+            ce+=1
 
 feedback = 1                 #positiv(1) or negative(0) feedback#
 
-r = np.zeros(n)            #list of cellposition in space#
-state=np.arange(n)          #list of default state of each cell#
-C_i = np.zeros(n)          # concentration of each cell at time i #
+r = np.zeros(len(pos))            #list of cellposition in space#
+state=np.arange(len(pos))          #list of default state of each cell#
+C_i = np.zeros(len(pos))          # concentration of each cell at time i #
 
-C_on=5                      #signalconcentration of activ cel#
-K =  1                      #threshold c#
+C_on=30                      #signalconcentration of activ cel#
+K =  33                     #threshold c#
 
 #outputdata
 
@@ -37,7 +45,7 @@ parameter = 'C_on = ' + str(C_on) \
             + ' diffconst =' + str(diff_const) \
             + ' feedback = ' + str(feedback) \
             + ' x = ' + str(x)\
-            +'.png'
+            +'.pdf'
 
 
 def calcDistances(c_num):
@@ -58,7 +66,7 @@ def calc_cval(step,i):
             c_neighbor = C_t[step][j] * np.exp(-r[j] / lambda_) + c_neighbor
 
     c_value = c_neighbor + C_t[step][i]
-    print('c_value :'+ str(c_neighbor))
+    #print('c_value :'+ str(c_neighbor))
     C_i[i]=c_value
 
 
@@ -90,78 +98,171 @@ def set_state():                    #function to  set concentration#
 
 
 
-def neighbor(step,i):                    #function to sum the current activated neighboring cells #
-    acti = 0
+def neighbor():                    #function to sum the current activated neighboring cells #
+    acti = 0.0
 
-    for j, val in enumerate(state_t[step]):
-        if val == 1 and j!=i :      #anyone else whos activ is counted
+    for j, val in enumerate(state):
+        if val == 1:      #anyone else whos activ is counted
             acti += 1
 
     return acti
 
 
-def switch (step,ci):             # determine cell cis status for next step.#
+def switch (step,ci, acti):             # determine cell cis status for next step.#
 
-    f_n = calc_expterm(ci)
-    acti=neighbor(step,ci)
+    on=False                            #boolean to determine cells next state
+    #quorum=False
+    #all=float(len(state))
+
+    #if (acti/all) >= 0.5:            #quorum sensing possibility if more active than cell also active#
+        #print(acti)
+        #quorum=True
+
+
+    #f_n = calc_expterm(ci)
+    #print(f_n)
+    #f_n=0.5
 
     #print('Soviele active drum rum '+str(ci)+' '+str(acti))
     #print('f_n ='+str(f_n))
 
-    A_0 = 1 + f_n - K
-    A_n = C_on + (1-K) / f_n
+    #A_0 = 1 + f_n - K
+    #A_n = C_on + (1-K) / f_n
     #+ (1 + (len(state) - acti) * f_n) / f_n  # activation  threshold
 
-    D_0 = C_i[ci] - K + f_n
-    D_n = C_on - K / (f_n + 1)
+    #D_0 = C_i[ci] - K + f_n
+    #D_n = C_on - K / (f_n + 1)
     # + (1 + (acti) * f_n) / (1 + f_n)  # deactivation threshold
 
 
     if feedback==1:           #positiv feedback
 
         #print('A_n ='+str(A_n))
-        #print('D_n ='+str(D_n))
+        #print('A_0 =' + str(A_0))
+        #print('D_0 ='+str(D_0))
+        #print('D_n =' + str(D_n))
         #print('C_i =' + str(C_i[ci]))
+        #print(str(C_i[ci]-K))
 
-        if C_i[ci]>= A_n and C_i[ci]<= A_0 :   #if true than active in next state cause of neighbor
-            state[ci]=1
-            C_i[ci]=C_on
+        if  C_i[ci]-K >= 0:                         # active state of autonomous cell#
 
-        elif C_i[ci]>= D_n and C_i[ci]<=D_0:   # if < than deactive in next state
-            state[ci]=0
-            C_i[ci]=1
+            # if inbetween bistable-state of autonomous cell#
 
-        elif C_i[ci] >= D_0 and C_i[ci]<=A_n:  # if inbetween bistable#
             if state[ci] == 0:
-                state[ci]=0
-                C_i[ci] = 1
+                on=False
+
             else:
-                state[ci]=1
-                C_i[ci]=C_on
+                on=True
+
+            #on=True
+
+
+        elif C_i[ci] - K <= 0:                      # deactive state of autonomous cell#
+            #print('auto de')
+            on = False
+
+
+        #if C_i[ci] >= D_0 and C_i[ci] <= A_n:  # if inbetween bistable-state of autonomous cell#
+            #print('auto bi')
+            #if state[ci] == 0:
+                #on=False
+
+            #else:
+                #on=True
+
+
+        #if  C_i[ci]<= A_n and C_i[ci]>= A_0 :   #if true than active in next state cause of neighbor
+            #print('ne ac')
+            #on=True
+
+        #if  C_i[ci]>= D_n and C_i[ci]<=D_0:   # if true than deactive in next state because of neighbor
+            #print('ne de')
+            #on=False
+
+        #if C_i[ci] <= D_0 and C_i[ci] >= A_n:  # if in between quorum cell#
+            #print('ne qu')
+            #if quorum:
+                #print('ne qu')
+                #on = True
+
+            #else:
+                #on = False
+
+        if on:
+            state[ci] = 1
+            C_i[ci] = C_on
+        else:
+            state[ci] = 0
+            C_i[ci] = 1
+
+
+
 
     elif feedback == 0:  # negative feedback#
 
-        print('A_n ='+str(A_n))
-        print('D_n ='+str(D_n))
-        print('C_i =' + str(C_i[ci]))
+        #print('A_n ='+str(A_n))
+        #print('D_0 ='+str(D_0))
+        #print('C_i =' + str(C_i[ci]))
 
-        if C_i[ci] >= A_n:  # if > than deactive in next state#
-                state[ci] = 0
-                C_i[ci] = 1
+        if C_i[ci] - K >= 0:                # deactive state of autonomous cell#
+            #print('auto de')
+            on = False
 
-        elif C_i[ci] <= D_n:  # if < than active in next state#
+
+        elif C_i[ci] - K <= 0:              # active state of autonomous cell#
+            #print('auto ac')
+            on = True
+
+
+        #elif C_i[ci] >= D_0 and C_i[ci] <= A_n:  # if inbetween flipflop of autonomous cell#
+            #print('auto flip')
+            #if state[ci] == 0:
+                #on = True
+
+            #else:
+                #on = False
+
+        #elif C_i[ci] >= A_n and C_i[ci] <= A_0:  # if true than deactive in next state cause of neighbor
+            #print('ne de')
+            #on = False
+
+        #elif C_i[ci] >= D_n and C_i[ci] <= D_0:  # if true than active in next state
+            #print('ne ac')
+            #on = True
+
+        #elif C_i[ci] <= D_0 and C_i[ci] >= A_n:  # if in between quorum cell#
+            #print('ne qu')
+
+            #if quorum:
+
+                #on = False
+
+            #else:
+                #on = True
+
+        if on:
             state[ci] = 1
             C_i[ci] = C_on
+        else:
+            state[ci] = 0
+            C_i[ci] = 1
 
+def figureprint(z):
 
-        elif C_i[ci] >= D_n and C_i[ci] <= A_n:  # if in between flipflop#
+    star = plt.subplot(3, 1, z)
+    if z==1:
+        star.set_title('Inital state')
+    elif z==2:
+        star.set_title('Halftime state')
+    elif z==3:
+        star.set_title('End state')
+    star.axis([-1, x + 1, -1, x + 1])  # plot of state/cell position
 
-                if state[ci] == 0:
-                    state[ci] = 1
-                    C_i[ci] = C_on
-                else:
-                    state[ci] = 0
-                    C_i[ci] = 1
+    for i in pos.keys():
+        if state[i] == 1:  # if on red dot
+            plt.plot(pos[i][0], pos[i][1], 'ro')
+        else:  # else(if off) blue dot
+            plt.plot(pos[i][0], pos[i][1], 'bo')
 
 def update(end):
 
@@ -173,7 +274,7 @@ def update(end):
     i = 0
 
 
-    while i < n:
+    while i < len(pos):
         state[i] = rd.randint(0, 1)  # produce random state
         i += 1
     stat_p=str(state)
@@ -190,62 +291,91 @@ def update(end):
 
             fig = plt.figure()
             fig.suptitle('Cell position and state', fontsize=16)
+            figureprint(1)
 
-
-
-            star=plt.subplot(3, 1, 1)
-            star.set_title('Inital state')
-            star.axis([-1, x + 1, -1, x + 1])         #plot of state/cell position
-
-
-            for i in pos.keys():
-                if state[i] == 1:                    #if on red dot
-                    plt.plot(pos[i][0], pos[i][1], 'ro')
-                else:                                #else(if off) blue dot
-                    plt.plot(pos[i][0], pos[i][1], 'bo')
 
 
         for i in range(len(C_i)):                 #calc actual c for cell
             calc_cval(timer,i)
-        print(C_i)
+
+        acti = neighbor()
+
         for j in range(len(C_i)):                 #determine cells behaviour
-            switch(timer,j)
+            switch(timer,j,acti)
 
 
         state_t.append(list(state))              #saves status
         C_t.append(list(C_i))                    #saves set c of cells
 
-        timer += 1
+
+
         if timer*2==len(time):
+            figureprint(2)
 
-            mid=plt.subplot(3, 1, 2)
-            mid.set_title('Halftime state')
-            mid.axis([-1, x + 1, -1, x + 1])               #plot of state/cell position
-            for i in pos.keys():
-                if state[i] == 1:                         #if on red dot
-                    plt.plot(pos[i][0], pos[i][1], 'ro')
-                else:                                    #else(if off) blue dot
-                    plt.plot(pos[i][0], pos[i][1], 'bo')
+        if timer == len(time)-2:
+            figureprint(3)
 
-
-
-        if timer == len(time)-1:
-
-            det=plt.subplot(3, 1, 3)
-            det.set_title('End state')
-            det.axis([-1, x + 1, -1, x + 1])  # plot of state/cell position
-            for i in pos.keys():
-                if state[i] == 1:  # if on red dot
-                    plt.plot(pos[i][0], pos[i][1], 'ro')
-                else:  # else(if off) blue dot
-                    plt.plot(pos[i][0], pos[i][1], 'bo')
-            fig.savefig(parameter, dpi=600, format='png', bbox_inches='tight')
-
+            fig.savefig(parameter, dpi=600, format='pdf', bbox_inches='tight')
+        timer += 1
 
     print(C_t)
     print(state_t)
 
 
 print(parameter)
-update(10)
+update(1)
 plt.show()
+
+# Dimensions
+nx, ny, nz = x, x, 1
+lx, ly, lz = 10.0, 10.0, 0.1
+dx, dy, dz = lx/nx, ly/ny, lz/nz
+
+ncells = nx * ny * nz
+npoints = (nx + 1) * (ny + 1) * (nz + 1)
+
+# Coordinates
+x = np.arange(0, lx + dx, dx, dtype='float64')
+y = np.arange(0, ly + dy, dy, dtype='float64')
+z = np.arange(0, lz + dz, dz, dtype='float64')
+
+# Variables
+point_data = np.zeros((nx + 1, ny + 1, nz + 1))
+#cell_data = np.zeros((nx, ny, nz))
+distribution = np.zeros((nx, ny, nz))
+dis=np.zeros((nx,ny))
+
+def calcDis_vis(x,y):
+
+    for i in range(nx):
+        for j in range(ny):
+            dis[i][j] = math.sqrt((i - x) ** 2 + (j - y) ** 2)
+
+
+    return dis
+
+
+def distribution_fct(i):
+
+    c_neighbor = 0
+    calcDistances(i)
+    for j in range(len(C_i)):  # nachbarzellen_c aufaddieren
+        if j != i:
+            c_neighbor = C_i[j] * np.exp(-r[j]/lambda_) + c_neighbor
+
+    c_value = c_neighbor + C_i[i]
+    # print('c_value :'+ str(c_neighbor))
+
+    return c_value
+p=0
+for i in range(0,nx):
+    for j in range(0,ny):
+        distribution[i][j][0] = distribution_fct(p)
+        p+=1
+        #print "x:" +  str(x[i])
+        #print "y:" + str(y[j])
+        #print "value:" + str(distribution[i][j][0])
+
+
+
+hl.gridToVTK("./test", x, y, z, cellData = {"distribution" : distribution}, pointData = {"temp" : point_data})
