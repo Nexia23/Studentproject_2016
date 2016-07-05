@@ -6,16 +6,16 @@ import random as rd
 
 #Variablen fuer Cgradient#
 
-gamma_ = 1.0                  #degradations constant#
+gamma_ = 7.0                  #degradations constant#
 diff_const = 1.0              #diffusions constant#
 bruch = float(diff_const/gamma_)
 lambda_ = float(math.sqrt(bruch))   #radius of signalcloud of cell#
 
-#Parametersettings
+#Parametersettings#
 
-x=10                            #sets gridsize
-n=1.0                         #sets chance of cells with n probability
-ch=0.1                            #sets on_state cells with n probability
+x=10                           #sets gridsize
+n=0.5                          #set chance of cells n probability
+ch=0.5                         #set on_state cells n probability
 pos={}
 ce=0
 
@@ -26,17 +26,17 @@ for a in range(x):
             pos[ce]=[a,b]     #dict for cell positions#
             ce+=1
 
-feedback = 1                  #positiv(1) or negative(0) feedback#
+feedback = 0                  #positiv(1) or negative(0) feedback#
 
 r = np.zeros(len(pos))        #list of cellposition in space#
 state=np.arange(len(pos))     #list of default state of each cell#
 C_i = np.zeros(len(pos))      # concentration of each cell at time i #
 C_print=np.zeros(len(pos))
 
-C_on=1.6                      #signalconcentration of activ cel#
-K =  7.0                      #threshold c#
+C_on=13.0                      #signalconcentration of activ cel#
+K =  15.0                      #threshold c#
 
-#outputdata
+#outputdata#
 
 C_t=[]                        # concentrations at time step#
 state_t=[]                    #lists all individual cellstates at timestep#
@@ -47,6 +47,7 @@ parameter = 'C_on = ' + str(C_on) \
             + ' gamma  = ' + str(gamma_) \
             + ' diffconst =' + str(diff_const) \
             + ' feedback = ' + str(feedback) \
+            + 'on_per_c = '+ str(ch)\
             + ' x = ' + str(x)\
             +'.pdf'
 
