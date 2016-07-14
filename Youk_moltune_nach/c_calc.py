@@ -6,33 +6,42 @@ import random as rd
 
 #Variablen fuer Cgradient#
 
-gamma_ = 7.0                  #degradations constant#
+gamma_ = 6.0                  #degradations constant#
 diff_const = 1.0              #diffusions constant#
 bruch = float(diff_const/gamma_)
 lambda_ = float(math.sqrt(bruch))   #radius of signalcloud of cell#
 
 #Parametersettings#
 
-x=10                           #sets gridsize
-n=0.5                          #set chance of cells n probability
-ch=0.5                         #set on_state cells n probability
-pos={}
+x=10                              #sets gridsize
+n=1.0                             #set chance of cells n probability
+place=0.5                         #set on_state cells n probability
+pos={}                            #dic for grid and cells in a list [0]=row [1]=col [2] if cell there or not
+
 ce=0
 
-for a in range(x):
-    for b in range(x):
+min_cell=3                        #set minimum of cellneigbors for new cellcreation#
+
+for row in range(x):
+    for col in range(x):
+
         put=rd.random()
         if put<= n:
-            pos[ce]=[a,b]     #dict for cell positions#
+            pos[ce]=[row,col,True]     #dict for cell positions#
+            ce+=1
+        else:
+            pos[ce]=[row,col,False]
             ce+=1
 
-feedback = 0                  #positiv(1) or negative(0) feedback#
+feedback = 1                  #positiv(1) or negative(0) feedback#
 
 r = np.zeros(len(pos))        #list of cellposition in space#
 state=np.arange(len(pos))     #list of default state of each cell#
 C_i = np.zeros(len(pos))      # concentration of each cell at time i #
-C_print=np.zeros(len(pos))
+C_print=np.zeros(len(pos))    #actual concentrations at position cells + neighbor#
+resident=np.zeros(len(pos))   #spot has cell or not#
 
+print(len(pos))
 C_on=13.0                      #signalconcentration of activ cel#
 K =  15.0                      #threshold c#
 
@@ -47,7 +56,7 @@ parameter = 'C_on = ' + str(C_on) \
             + ' gamma  = ' + str(gamma_) \
             + ' diffconst =' + str(diff_const) \
             + ' feedback = ' + str(feedback) \
-            + 'on_per_c = '+ str(ch)\
+            + ' on_per_c = '+ str(place)\
             + ' x = ' + str(x)\
             +'.pdf'
 
@@ -92,20 +101,45 @@ def set_state():                    #function to  set concentration#
 
     if feedback==1:
         for j, val in enumerate(state):
-            if val == 1:                #anyone with 1 is activ
-                C_i[j]=C_on             #and concentration is set on c_on for active cell
-                C_print[j]=C_on
-            else:
-                C_i[j]=1                #or inactive than set to 1
-                C_print[j]=1
+            if pos[j][2]:
+                if val == 1:                #anyone with 1 is activ
+                    C_i[j]=C_on             #and concentration is set on c_on for active cell
+                    C_print[j]=C_on
+                else:
+                    C_i[j]=1                #or inactive than set to 1
+                    C_print[j]=1
+
 
     elif feedback==0:
         for j, val in enumerate(state):
-            if val == 0:  # anyone with 1 is activ
-                C_i[j] = C_on  # and concentration is set on c_on for active cell
-            else:
-                C_i[j] = 1  # or inactive than set to 1
+            if pos[j][2]:
+                if val == 0:  # anyone with 1 is activ
+                    C_i[j] = C_on  # and concentration is set on c_on for active cell
+                else:
+                    C_i[j] = 1  # or inactive than set to 1
 
+def create(i):                          #function who looks at dircet neighbors to decide if cell comes to life
+
+    counter=0
+    life=False
+
+    if i-1>0:
+        if pos[i-1] and state[i-1]:
+            counter+=1
+    if i+1<x*x:
+        if pos[i+1] and state[i-1]:
+            counter+=1
+    if i-x >= 0:
+        if pos[i-x]and state[i-x] :
+            counter+=1
+    if i+x < x*x:
+        if pos[i+x]and state[i+x]:
+            counter+=1
+
+    if counter>=min_cell:
+        life=True
+
+    return life
 
 def switch (ci):             # determine cell cis status for next step.#
 
@@ -117,20 +151,28 @@ def switch (ci):             # determine cell cis status for next step.#
 
 
         if  C_i[ci]-K >= 0:                         # active state of autonomous cell#
-
             on=True
+            if not pos[ci][2]:
+                if create(ci):
+                    pos[ci][2]=True
+                    on=False
+
 
         elif C_i[ci] - K <= 0:                      # deactive state of autonomous cell#
             #print('auto de')
             on = False
 
 
-        if on:
-            state[ci] = 1
-            C_i[ci] = C_on
+        if pos[ci][2]:
+            if on:
+                state[ci] = 1
+                C_i[ci] = C_on
+            else:
+                state[ci] = 0
+                C_i[ci] = 1
         else:
             state[ci] = 0
-            C_i[ci] = 1
+            C_i[ci] = 0
 
 
     elif feedback == 0:  # negative feedback#
@@ -160,6 +202,7 @@ def figureprint (z):
     temp_y = []
 
     for i in pos.keys():
+
         temp_x.append(pos[i][0])
         temp_y.append(pos[i][1])
 
@@ -193,10 +236,11 @@ def figureprint (z):
             zplot.set_title('End state')
 
         for i in pos.keys():
-            if state[i] == 1:  # if on red dot
-                zplot.plot(pos[i][0], pos[i][1], 'ro')
-            else:  # else(if off) blue dot
-                zplot.plot(pos[i][0], pos[i][1], 'bo')
+            if pos[i][2]:
+                if state[i] == 1:  # if on red dot
+                    zplot.plot(pos[i][0], pos[i][1], 'ro')
+                else:  # else(if off) blue dot
+                    zplot.plot(pos[i][0], pos[i][1], 'bo')
 
 def update(end):
 
@@ -209,13 +253,19 @@ def update(end):
 
 
     while i < len(pos):             # produce random state
+
         hp = rd.random()
-        if hp <= ch:
-            state[i] = 1
-            i += 1
+        if pos[i]:
+            if hp <= place:
+                state[i] = 1
+                i += 1
+            else:
+                state[i] = 0
+                i += 1
         else:
-            state[i] = 0
-            i += 1
+            state[i]= 0
+            C_i[i]= 0
+            i +=1
 
 
     set_state()
@@ -247,6 +297,7 @@ def update(end):
         if timer == len(time) - 2:
             figureprint(5)
             figureprint(6)
+
             fig.savefig(parameter, dpi=600, format='pdf', bbox_inches='tight')
         timer += 1
 
@@ -259,5 +310,4 @@ def update(end):
 
 print(parameter)
 update(1)
-
 plt.show()

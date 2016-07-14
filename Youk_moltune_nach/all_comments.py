@@ -300,7 +300,14 @@ def update(end):
     time = np.linspace(start, stop, end*10)
     timer=0
     i = 0
-
+    #50_50 positioning
+    while i < len(pos):
+        if i <= len(pos) / 2:
+            state[i] = 1  # rd.randint(0, 1)  # produce random state
+            i += 1
+        if i >= len(pos) / 2:
+            state[i] = 0  # rd.randint(0, 1)  # produce random state
+            i += 1
 
     while i < len(pos):
         state[i] = rd.randint(0, 1)  # produce random state
