@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
+import classes
 import random as rd
 
 #Variablen fuer Cgradient#
 
-gamma_ = 6.0                  #degradations constant#
+gamma_ = 7.0                  #degradations constant#
 diff_const = 1.0              #diffusions constant#
 bruch = float(diff_const/gamma_)
 lambda_ = float(math.sqrt(bruch))   #radius of signalcloud of cell#
@@ -16,11 +17,15 @@ lambda_ = float(math.sqrt(bruch))   #radius of signalcloud of cell#
 x=10                              #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.5                         #set on_state cells n probability
+C_on=13.0                         #signalconcentration of activ cel#
+K =  18.0                         #threshold c#
+feedback = 0                      #positiv(1) or negative(0) feedback#
+min_cell=5                        #set minimum of cellneigbors for new cellcreation#
+
+
+ce=0                              #for pos_dic entrykey
 pos={}                            #dic for grid and cells in a list [0]=row [1]=col [2] if cell there or not
 
-ce=0
-
-min_cell=3                        #set minimum of cellneigbors for new cellcreation#
 
 for row in range(x):
     for col in range(x):
@@ -33,7 +38,7 @@ for row in range(x):
             pos[ce]=[row,col,False]
             ce+=1
 
-feedback = 1                  #positiv(1) or negative(0) feedback#
+
 
 r = np.zeros(len(pos))        #list of cellposition in space#
 state=np.arange(len(pos))     #list of default state of each cell#
@@ -41,9 +46,7 @@ C_i = np.zeros(len(pos))      # concentration of each cell at time i #
 C_print=np.zeros(len(pos))    #actual concentrations at position cells + neighbor#
 resident=np.zeros(len(pos))   #spot has cell or not#
 
-print(len(pos))
-C_on=13.0                      #signalconcentration of activ cel#
-K =  15.0                      #threshold c#
+
 
 #outputdata#
 
@@ -211,7 +214,7 @@ def figureprint (z):
 
     if not z%2==0:
         if z==1:
-            zplot.set_title('Inital concentration')
+            zplot.set_title('Initial concentration')
 
         elif z==3:
             zplot.set_title('Halftime concentration')
@@ -227,7 +230,7 @@ def figureprint (z):
         zplot.scatter(temp_x, temp_y, c=temp_C, cmap='bwr')
     if  z % 2 == 0:
         if z == 2:
-            zplot.set_title('Inital state')
+            zplot.set_title('Initial state')
 
         elif z == 4:
             zplot.set_title('Halftime state')
@@ -294,7 +297,7 @@ def update(end):
             figureprint(3)
             figureprint(4)
 
-        if timer == len(time) - 2:
+        if timer == len(time) -2:
             figureprint(5)
             figureprint(6)
 
