@@ -60,10 +60,18 @@ class cell:
 
 def border(h,b):
 
-    if h-radius < 0 or h+radius > x*x:
+    fenc = b + x * h
+
+    if fenc - radius < 0:
         return False
-    if b-radius< 0 or b+radius > x*x:
+    if fenc + radius > (x+1) ** 2:
         return False
+
+    if h-radius < 0 :
+        return False
+    if b-radius< 0 :
+        return False
+
     else:
         return True
 
@@ -73,75 +81,99 @@ def border(h,b):
 def occupy(m):                              #cellplacement
 
     if isinstance(pos[m][2], cell):         #check if cell there safety
+        #print('cell,ho')
         rad = pos[m][2].radius
 
-        for h in range(-rad,rad+1):         # go along the
-            for b in range(-rad,rad+1):     #outer quadrate of the circle r=rad
+        for h in range(-rad,rad+1):         # go along the (row)
+            for b in range(-rad,rad+1):     #outer quadrate of the circle r=rad (col)
 
-                poi = m + h * x + b  # position in the chain
+                poi = m + h*x + b  # position in the chain
 
                 if checkneighbor(poi):
 
-                    eq = math.sqrt((pos[m][0]+h) ** 2 + (pos[m][1]+b) ** 2)
+                    eq = math.sqrt((pos[poi][0]-pos[m][0]) ** 2 + (pos[poi][1]-pos[m][1]) ** 2)
 
                     if eq <= rad:               #if smaller or same than position inside the cell
 
-
-
                         if pos[poi][2]== False:
-                            pos[poi][2] = pos[m][2].mid
+                            pos[poi][2] = str(pos[m][2].mid)
+
+                elif poi==m:
+                    pass
+                else:
+                    move(poi)
 
 
 
 
-def checkneighbor(p):
+def checkneighbor(p):                   # check if occupied there
 
-    if isinstance(pos[p][2], cell) or pos[p][2]:  # check if occupied there
+    if p >= (x+1)**2 or p<=0:
         return False
+
+    if isinstance(pos[p][2], cell) :
+        return False
+
+    if isinstance(pos[p][2], str):
+        return False
+
     else:
         return True
 
 
+def move(p):
 
-
-
-
-
-def physics():
-    pass
+    print('shiiit'+ str(p))
 
 #Parametersettings#
 
-x=10                              #sets gridsize
-n=0.1                             #set chance of cells n probability
+x=5                              #sets gridsize
+n=1.0                             #set chance of cells n probability
 place=0.5                         #set on_state cells n probability
 C_on=13.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
 feedback = 0                      #positiv(1) or negative(0) feedback#
 min_cell=5                        #set minimum of cellneigbors for new cellcreation#
-radius=2
+radius=1
 
-ce=0                              #for pos_dic entrykey
+cc=0                              #for pos_dic entrykey
 pos={}                            #dic for grid and cells in a list [0]=row [1]=col [2] if cell there or not
 num=0
+
+def initialize():                       #creats grid on which cells placed
+    ce = 0
+    for row in range(x+1):
+        for col in range(x+1):
+            pos[ce] = [row, col, False]
+            ce += 1
+
+
+initialize()
 
 for row in range(x+1):
     for col in range(x+1):
         put=rd.random()
 
+        if cc > 30:
+            print('last row')
+            print (row)
         if border(row,col):
-            if put<= n:
-                num+=1
 
-                pos[ce]= [row,col,cell(ce,'ecoli '+str(num), radius, True)]     #dict for cell positions#
-                occupy(ce)
-                ce+=1
-            else:
-                pos[ce]=[row,col,False]
-                ce+=1
+            if put<= n:
+
+                num+=1
+                pos[cc]= [row,col,cell(cc,'ecoli '+str(num), radius, True)]     #dict for cell positions#
+                print('Hey'+str(cc))
+
+                occupy(cc)
+
+                print(pos)
+
+                cc+=1
         else:
-            pos[ce] = [row, col, False]
-            ce += 1
+            cc+=1
+
+
 
 
 r = np.zeros(len(pos))        #list of cellposition in space#
@@ -149,7 +181,7 @@ state=np.arange(len(pos))     #list of default state of each cell#
 C_i = np.zeros(len(pos))      # concentration of each cell at time i #
 C_print=np.zeros(len(pos))    #actual concentrations at position cells + neighbor#
 resident=np.zeros(len(pos))   #spot has cell or not#
-print(pos)
+#print(pos)
 
 class Molecule:
     """
