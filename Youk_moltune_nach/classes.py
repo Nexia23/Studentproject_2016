@@ -110,11 +110,11 @@ def checkneighbor(p):                   # check if can be placed
         return False
 
     if isinstance(pos[p][2], basestring):
-        print('str')
+        #print('str')
         return False
 
     if isinstance(pos[p][2], cell):
-        print('cell')
+        #print('cell')
         return False
 
     rad = radius
@@ -140,8 +140,8 @@ def checkneighbor(p):                   # check if can be placed
 
 
 def move(p):
-
-    print('shiiit'+ str(p))
+    pass
+    #print('shiiit'+ str(p))
 
 #Parametersettings#
 
@@ -152,7 +152,7 @@ C_on=13.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
 feedback = 0                      #positiv(1) or negative(0) feedback#
 min_cell=5                        #set minimum of cellneigbors for new cellcreation#
-radius=1
+radius=2
 
 cc=0                              #for pos_dic entrykey
 pos={}                            #dic for grid and cells in a list [0]=row [1]=col [2] if cell there or not
@@ -179,9 +179,9 @@ for row in range(x+1):
                 if put<= n :
 
                     pos[cc]= [row,col,cell(cc,'ecoli ', radius, True)]     #dict for cell positions#
-                    print('Hey'+str(cc))
+                    #print('Hey'+str(cc))
                     occupy(cc)
-                    print(pos)
+                    #print(pos)
 
                     cc+=1
                 else:
@@ -196,7 +196,7 @@ for row in range(x+1):
             cc+=1
 
 
-
+print(pos)
 
 r = np.zeros(len(pos))        #list of cellposition in space#
 state=np.arange(len(pos))     #list of default state of each cell#
