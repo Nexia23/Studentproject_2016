@@ -64,7 +64,7 @@ def border(h,b):
 
     if fenc - radius < 0:
         return False
-    if fenc + radius > (x+1) ** 2:
+    if fenc + radius > (x) ** 2:
         return False
 
     if h-radius < 0 :
@@ -89,36 +89,54 @@ def occupy(m):                              #cellplacement
 
                 poi = m + h*x + b  # position in the chain
 
-                if checkneighbor(poi):
+                eq = math.sqrt((pos[poi][0]-pos[m][0]) ** 2 + (pos[poi][1]-pos[m][1]) ** 2)
 
-                    eq = math.sqrt((pos[poi][0]-pos[m][0]) ** 2 + (pos[poi][1]-pos[m][1]) ** 2)
+                if eq <= rad:               #if smaller or same than position inside the cell
 
-                    if eq <= rad:               #if smaller or same than position inside the cell
-
-                        if pos[poi][2]== False:
-                            pos[poi][2] = str(pos[m][2].mid)
+                    if pos[poi][2]== False:
+                        pos[poi][2] = str(pos[m][2].mid)
 
                 elif poi==m:
                     pass
-                else:
-                    move(poi)
 
 
 
 
-def checkneighbor(p):                   # check if occupied there
+def checkneighbor(p):                   # check if can be placed
 
-    if p >= (x+1)**2 or p<=0:
+    ind = True
+
+    if p >= (x+1)**2 or p < 0:
         return False
 
-    if isinstance(pos[p][2], cell) :
+    if isinstance(pos[p][2], basestring):
+        print('str')
         return False
 
-    if isinstance(pos[p][2], str):
+    if isinstance(pos[p][2], cell):
+        print('cell')
         return False
 
-    else:
-        return True
+    rad = radius
+
+    for h in range(-rad, rad + 1):                      # go along the (row)
+        for b in range(-rad, rad + 1):                  # outer quadrate of the circle r=rad (col)
+
+            poi = p + h * x + b                         # position in the chain
+            if poi >= (x + 1) ** 2 or poi < 0:
+                return False
+
+            eq = math.sqrt((pos[poi][0] - pos[p][0]) ** 2 + (pos[poi][1] - pos[p][1]) ** 2)
+
+            if eq <= rad:                               # if smaller or same than position inside the cell
+
+                if isinstance(pos[poi][2], cell):
+                    ind = False
+
+                if isinstance(pos[poi][2], basestring):
+                    ind = False
+
+    return ind
 
 
 def move(p):
@@ -138,7 +156,7 @@ radius=1
 
 cc=0                              #for pos_dic entrykey
 pos={}                            #dic for grid and cells in a list [0]=row [1]=col [2] if cell there or not
-num=0
+
 
 def initialize():                       #creats grid on which cells placed
     ce = 0
@@ -154,22 +172,26 @@ for row in range(x+1):
     for col in range(x+1):
         put=rd.random()
 
-        if cc > 30:
-            print('last row')
-            print (row)
         if border(row,col):
 
-            if put<= n:
+            if checkneighbor(cc):
 
-                num+=1
-                pos[cc]= [row,col,cell(cc,'ecoli '+str(num), radius, True)]     #dict for cell positions#
-                print('Hey'+str(cc))
+                if put<= n :
 
-                occupy(cc)
+                    pos[cc]= [row,col,cell(cc,'ecoli ', radius, True)]     #dict for cell positions#
+                    print('Hey'+str(cc))
+                    occupy(cc)
+                    print(pos)
 
-                print(pos)
+                    cc+=1
+                else:
+                    cc+=1
 
+            else:
                 cc+=1
+
+
+
         else:
             cc+=1
 
