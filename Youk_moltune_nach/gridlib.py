@@ -13,7 +13,9 @@ C_on=13.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
 feedback = 0                      #positiv(1) or negative(0) feedback#
 min_cell=5                        #set minimum of cellneigbors for new cellcreation#
-radius=2                          #set intial radius of cell
+
+radius=1                          #set intial radius of cell
+
 maxrad=radius*5                   #max r which cell can have before division#
 
 cc=0                              #the entrykey for dics
@@ -55,7 +57,9 @@ def initialize():                               #creats grid on which cells are 
     for cc in range(npoints):                    #cells placed#
         print(cc)
         put = rd.random()
+
         stop=(x+1)*(radius+1)
+
         if cc==stop:
             break
         if border(cc):
@@ -180,9 +184,23 @@ def occupy(m):                              #cellplacement
 
 
 def move(p):
+    rad= c_ary[p].radius
+    
     pass
     #print('shiiit'+ str(p))
 
+def divide(p):
+    pass
+
+def event():
+
+    for elem in c_ary:
+
+        if c_ary[elem].radius>=maxrad:
+            divide(elem)
+        else:
+            c_ary[elem].radius = c_ary[elem].radius + 1
+            move(elem)
 
 
 
@@ -192,14 +210,17 @@ def update(end):
     start=0
     stop = end
     time = np.linspace(start, stop, end*10)
+
     timer=0
 
-
+    initialize()
 
     for step in time:
 
-        if step==0:
-            initialize()
+        event()
+
+
+
 
 
 
@@ -220,6 +241,7 @@ for i in range(0, npoints):
         rei = ''
 rei = ''
 bla=0
+
 for i in range(0, npoints):
     bla+=1
     rei = rei +'|'+ str(i)
@@ -232,6 +254,8 @@ for i in range(0, npoints):
         print rei
         rei = ''
 
+
 print(pos)
-print(c_ary)
-print (npoints)
+for elem in c_ary:
+    print(c_ary[elem].radius)
+
