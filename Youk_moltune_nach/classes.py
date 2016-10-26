@@ -3,7 +3,7 @@ class cell:
     """
     @type name: str(which bacteria)
     @type radius: float
-    @type molcomp: dict
+    @type mid: int
     @type status: bool
     """
 
@@ -21,7 +21,10 @@ class cell:
 
     @mid.setter
     def mid(self, value):
-        self.__mid = value
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("radius must be numeric")
+        else:
+            self.__mid = value
 
     @property
     def name(self):
