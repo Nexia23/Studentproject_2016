@@ -16,10 +16,10 @@ min_cell=5                        #set minimum of cellneigbors for new cellcreat
 
 radius=1                          #set intial radius of cell
 
-maxrad=radius*5                   #max r which cell can have before division#
+maxrad=radius*2                   #max r which cell can have before division#
 
 cc=0                              #the entrykey for dics
-
+g_rate=1                          #growthrate of radius
 
 # Dimensions
 nx, ny, nz = x, x, 1
@@ -41,7 +41,7 @@ C_print=np.zeros(npoints)     #actual concentrations at position cells + neighbo
 
 resident=np.zeros(npoints)    #spot has cell or not| int references#
 c_ary={}                     #cell-class ref#
-pos={}                       #dic for grid#
+pos={}                       #dic for grid [0]=x_axis [1]=y_axis#
 
 
 
@@ -54,17 +54,17 @@ def initialize():                               #creats grid on which cells are 
             pos[ce] = [x_c[row], y_c[col]]
             ce += 1
 
-    for cc in range(npoints):                    #cells placed#
-        print(cc)
+    for cc in range(npoints):                    #cells being placed#
         put = rd.random()
 
         stop=(x+1)*(radius+1)
 
-        if cc==stop:
+        if cc==stop:                            #only one horizontal row used#
             break
-        if border(cc):
 
-            if checkneighbor(cc):
+        if border(cc):                          #checks for outofbounds around edges#
+
+            if checkneighbor(cc):               #check if cell can be placed#
 
                 if put <= n:
                     print(cc)
@@ -113,8 +113,9 @@ def border(pt):                         #checks for outofbounds around edges #
         return True
 
 
-def checkneighbor(p):                   # check if can be placed
+def checkneighbor(p):                   #check if can be placed#
     print('check')
+
     ind = True
 
     if p >= (npoints)**2 or p < 0:
@@ -135,11 +136,13 @@ def checkneighbor(p):                   # check if can be placed
 def outersq(p):
 
     rad = radius
+    if p in c_ary:                      #check if cell there possible different r#
+        rad = c_ary[p].radius
 
-    for h in range(-rad, rad + 1):      # go along the (row)
-        for b in range(-rad, rad + 1):  # outer quadrate of the circle r=rad (col)
+    for h in range(-rad, rad + 1):      #go along the (row)
+        for b in range(-rad, rad + 1):  #outer quadrate of the circle r=rad (col)
 
-            poi = p + h * x + b  # position in the chain
+            poi = p + h * x + b         #position in the chain
             if poi >= npoints:
                 print ('hey f1')
                 return False
@@ -149,7 +152,7 @@ def outersq(p):
 
             eq = math.sqrt((pos[poi][0] - pos[p][0]) ** 2 + (pos[poi][1] - pos[p][1]) ** 2)
 
-            if eq <= rad:  # if smaller or same than position inside the cell
+            if eq <= rad:               #if smaller or same than position inside the cell
 
                 if resident[poi] != 0:
                     print ('hey f3')
@@ -159,7 +162,7 @@ def outersq(p):
 
 def occupy(m):                              #cellplacement
 
-    if isinstance(c_ary[m], cl.cell):         #check if cell there safety
+    if isinstance(c_ary[m], cl.cell):       #get cell_r for placement#
         rad = c_ary[m].radius
 
         if maxrad > dx or maxrad > dy:
@@ -184,23 +187,38 @@ def occupy(m):                              #cellplacement
 
 
 def move(p):
-    rad= c_ary[p].radius
-    
-    pass
+
+    if outersq(p):
+        occupy(p)
+    else:
+        x_bp = pos[p][0] + c_ary[p].radius
+        y_bp = pos[p][1] + c_ary[p].radius
+
+        x_bn = pos[p][0] - c_ary[p].radius
+        y_bn = pos[p][1] - c_ary[p].radius
+
+        x_bp/(x+1)
     #print('shiiit'+ str(p))
 
 def divide(p):
     pass
 
-def event():
+def growth(p):
+
+    c_ary[p].radius = c_ary[p].radius + g_rate
+
+
+def event():                                #what happens to cell in time step#
 
     for elem in c_ary:
 
-        if c_ary[elem].radius>=maxrad:
+        if c_ary[elem].radius >= maxrad:    #cell_r big enough -> division#
             divide(elem)
-        else:
-            c_ary[elem].radius = c_ary[elem].radius + 1
-            move(elem)
+
+        elif c_ary[elem].status:
+            growth(elem)                    #if cell=on -> grows#
+
+        move(elem)
 
 
 
@@ -257,5 +275,6 @@ for i in range(0, npoints):
 
 print(pos)
 for elem in c_ary:
+    print(c_ary[elem].status)
     print(c_ary[elem].radius)
 
