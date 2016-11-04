@@ -3,10 +3,10 @@ import random as rd
 import numpy as np
 import math
 import classes as cl
-
+import vtktools
 #Parametersettings#
 
-x=10                              #sets gridsize
+x=100                              #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.5                         #set on_state cells n probability
 C_on=13.0                         #signalconcentration of activ cel#
@@ -23,7 +23,7 @@ g_rate=1                          #growthrate of radius
 
 # Dimensions
 nx, ny, nz = x, x, 1
-lx, ly, lz = 10.0, 10.0, 0.1
+lx, ly, lz = 100.0, 100.0, 0.1
 dx, dy, dz = lx/nx, ly/ny, lz/nz
 
 ncells = nx * ny * nz
@@ -40,24 +40,24 @@ C_i = np.zeros(npoints)       #concentration of each cell at time i #
 C_print=np.zeros(npoints)     #actual concentrations at position cells + neighbor#
 
 resident=np.zeros(npoints)    #spot has cell or not| int references#
-c_ary={}                     #cell-class ref#
-pos={}                       #dic for grid [0]=x_axis [1]=y_axis#
+c_ary={}                      #cell-class ref#
+pos={}                        #dic for grid [0]=x_axis [1]=y_axis#
 
-
+print(npoints)
 
 
 def initialize():                               #creats grid on which cells are placed by chance
 
     ce = 0
-    for row in range(len(x_c)):                 #grid saved in a dic#
-        for col in range(len(y_c)):
-            pos[ce] = [x_c[row], y_c[col]]
+    for row in range(len(y_c)):                 #grid saved in a dic#
+        for col in range(len(x_c)):
+            pos[ce] = [x_c[col], y_c[row]]
             ce += 1
 
     for cc in range(npoints):                    #cells being placed#
         put = rd.random()
 
-        stop=(x+1)*(radius+1)
+        stop=(x+1)*(maxrad+1)
 
         if cc==stop:                            #only one horizontal row used#
             break
@@ -68,43 +68,34 @@ def initialize():                               #creats grid on which cells are 
 
                 if put <= n:
                     print(cc)
-                    c_ary[cc] = cl.cell(cc, 'ecoli ', radius, True)
+                    c_ary[cc] = cl.cell(cc, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], 1)
 
                     occupy(cc)
 
-    for i in c_ary.keys():                      #produce random state of cells#
 
-        hp = rd.random()
+def stategamble():                      #prodces random booleanvalue according to place
+    hp = rd.random()                    #usage: setting initial state of cell
 
-        if hp <= place:
-            c_ary[i].status = True
+    if hp <= place:
+        return True
 
-        else:
-            c_ary[i].status = False
-
+    else:
+        return False
 
 def border(pt):                         #checks for outofbounds around edges #
 
-    #if pt - x * radius < 0:
-        #print ('hey b_1')
 
-        #return False
-    #if pt + x * radius > ncells:
-        #print ('hey b_2')
-
-        #return False
-
-    if pos[pt][0]-radius < 0 :
+    if pos[pt][0]-maxrad < 0 :
         print ('hey b_3')
         return False
-    if pos[pt][1]-radius < 0 :
+    if pos[pt][1]-maxrad < 0 :
         print ('hey b_o4')
         return False
 
-    if pos[pt][0] + radius > lx:
+    if pos[pt][0] + maxrad > lx:
         print ('hey b_5')
         return False
-    if pos[pt][1] + radius > ly:
+    if pos[pt][1] + maxrad > ly:
         print ('hey b_6')
         return False
 
@@ -113,8 +104,7 @@ def border(pt):                         #checks for outofbounds around edges #
         return True
 
 
-def checkneighbor(p):                   #check if can be placed#
-    print('check')
+def checkneighbor(p):                   #check if cell can be placed#
 
     ind = True
 
@@ -128,8 +118,6 @@ def checkneighbor(p):                   #check if can be placed#
 
     if maxrad > dx or maxrad > dy:
         ind = outersq(p)
-
-
 
     return ind
 
@@ -174,7 +162,7 @@ def occupy(m):                              #cellplacement
                     if poi == m:
                         pass
 
-                    eq = math.sqrt((pos[poi][0] - pos[m][0]) ** 2 + (pos[poi][1] - pos[m][1]) ** 2)
+                    eq = math.sqrt((pos[poi][0] - c_ary[m].xcor) ** 2 + (pos[poi][1] - c_ary[m].ycor) ** 2)
 
                     if eq <= rad:               #if smaller or same than position inside the cell
 
@@ -184,21 +172,12 @@ def occupy(m):                              #cellplacement
             resident[m] = c_ary[m].mid
 
 
+def force():
+    pass
 
+def move():
 
-def move(p):
-
-    if outersq(p):
-        occupy(p)
-    else:
-        x_bp = pos[p][0] + c_ary[p].radius
-        y_bp = pos[p][1] + c_ary[p].radius
-
-        x_bn = pos[p][0] - c_ary[p].radius
-        y_bn = pos[p][1] - c_ary[p].radius
-
-        x_bp/(x+1)
-    #print('shiiit'+ str(p))
+    force()
 
 def divide(p):
     pass
@@ -218,7 +197,7 @@ def event():                                #what happens to cell in time step#
         elif c_ary[elem].status:
             growth(elem)                    #if cell=on -> grows#
 
-        move(elem)
+    move()
 
 
 
@@ -254,7 +233,7 @@ for i in range(0, npoints):
     if i ==120:
         print rei
         break
-    elif pos[i][1]==lx and i!=0:
+    elif pos[i][0]==lx and i!=0:
         print rei
         rei = ''
 rei = ''
@@ -268,13 +247,25 @@ for i in range(0, npoints):
     if i == 120:
         print rei
         break
-    elif pos[i][1]==lx and i!=0:
+    elif pos[i][0]==lx and i!=0:
         print rei
         rei = ''
 
+x_list=[]
+y_list=[]
+z_list=[]
+r_list=[]
+vtk_writer = vtktools.VTK_XML_Serial_Unstructured()
 
-print(pos)
 for elem in c_ary:
-    print(c_ary[elem].status)
-    print(c_ary[elem].radius)
+    x_list.append(pos[elem][0])
+    y_list.append(pos[elem][1])
+    z_list.append(0.0)
+    r_list.append(c_ary[elem].radius)
+
+print (x_list)
+print(y_list)
+print (r_list)
+
+vtk_writer.snapshot("cell_arrangements.vtu", x_list, y_list, z_list, radii = r_list)
 

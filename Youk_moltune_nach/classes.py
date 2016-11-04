@@ -7,13 +7,15 @@ class cell:
     @type status: bool
     """
 
-    def __init__(self, mid, name, radius, status):
+    def __init__(self, mid, name, radius, status, xcor, ycor, zcor):
         self.mid = mid
         self.name = name
         self.radius = radius
         #self.molcomp = molcomp
         self.status = status
-
+        self.xcor = xcor
+        self.ycor = ycor
+        self.zcor = zcor
 
     @property
     def mid(self):
@@ -53,6 +55,38 @@ class cell:
     def status(self,value):
         self.__status = value
 
+    @property
+    def x_cor(self):
+        return self.__x_cor
+
+    @x_cor.setter
+    def x_cor(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("coordinate must be numeric")
+        else:
+            self.__x_cor = value
+
+    @property
+    def y_cor(self):
+        return self.__y_cor
+
+    @y_cor.setter
+    def y_cor(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("coordinate must be numeric")
+        else:
+            self.__y_cor = value
+
+    @property
+    def z_cor(self):
+        return self.__z_cor
+
+    @z_cor.setter
+    def z_cor(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("coordinate must be numeric")
+        else:
+            self.__z_cor = value
 
     def __repr__(self):
         return self.name
