@@ -173,7 +173,16 @@ def occupy(m):                              #cellplacement
 
 
 def force():
-    pass
+    d={}
+    for elem in c_ary:
+        for y in c_ary:
+
+            sum=np.square(c_ary[y].xcor-c_ary[elem].xcor)\
+                +np.square(c_ary[y].ycor-c_ary[elem].ycor)\
+                +np.square(c_ary[y].zcor-c_ary[elem].zcor)
+
+            d[elem][y] = [np.sqrt(sum)]
+            d[y][elem] = d[elem][y]
 
 def move():
 
