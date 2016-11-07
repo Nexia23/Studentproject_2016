@@ -20,7 +20,7 @@ maxrad=radius*2                   #max r which cell can have before division#
 
 cc=0                              #the entrykey for dics
 g_rate=1                          #growthrate of radius
-
+k=0.9                             #factor how close neighboring cells can be
 # Dimensions
 nx, ny, nz = x, x, 1
 lx, ly, lz = 100.0, 100.0, 0.1
@@ -172,21 +172,36 @@ def occupy(m):                              #cellplacement
             resident[m] = c_ary[m].mid
 
 
-def force():
-    d={}
+def force():                                     #calculates movement by forcecalc of cells pushing
+
+    d=np.zeros((ncells,ncells))
+
     for elem in c_ary:
         for y in c_ary:
 
-            sum=np.square(c_ary[y].xcor-c_ary[elem].xcor)\
+            if y>elem:
+                pass
+            else:
+                sum=np.square(c_ary[y].xcor-c_ary[elem].xcor)\
                 +np.square(c_ary[y].ycor-c_ary[elem].ycor)\
                 +np.square(c_ary[y].zcor-c_ary[elem].zcor)
 
-            d[elem][y] = [np.sqrt(sum)]
-            d[y][elem] = d[elem][y]
+                d_n=np.sqrt(sum)                #actual distance of two cells
+
+                R = c_ary[y].radius+c_ary[elem].radius
+
+                if d_n < R :                    #checks if cell[elem] is pushed by cell[y] only when d_n < R
+
+                    fac=(k*R)-d_n
+
+                    d[(elem,y)] = d_n
+                    d[(y,elem)] = d[(elem,y)]
+    return d
 
 def move():
 
-    force()
+    delta = force()
+
 
 def divide(p):
     pass

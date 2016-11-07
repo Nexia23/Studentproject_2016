@@ -6,3 +6,5 @@ for i in range(1,6):
     print rei
 
 print(10/11)
+d={}
+d[200][1]=1
