@@ -18,7 +18,7 @@ radius=1                          #set intial radius of cell
 
 maxrad=radius*2                   #max r which cell can have before division#
 
-cc=0                              #the entrykey for dics
+
 g_rate=1                          #growthrate of radius
 k=0.9                             #factor how close neighboring cells can be
 # Dimensions
@@ -67,9 +67,8 @@ def initialize():                               #creats grid on which cells are 
             if checkneighbor(cc):               #check if cell can be placed#
 
                 if put <= n:
-                    print(cc)
-                    c_ary[cc] = cl.cell(cc, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], 1)
 
+                    c_ary[cc] = cl.cell(cc, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], 1)
                     occupy(cc)
 
 
@@ -174,34 +173,50 @@ def occupy(m):                              #cellplacement
 
 def force():                                     #calculates movement by forcecalc of cells pushing
 
-    d=np.zeros((ncells,ncells))
+    d_x = np.zeros(ncells)
+    d_y = np.zeros(ncells)
+    d_z = np.zeros(ncells)
 
     for elem in c_ary:
-        for y in c_ary:
+        for oths in c_ary:
 
-            if y>elem:
+            sum=np.square(c_ary[oths].xcor-c_ary[elem].xcor)\
+            +np.square(c_ary[oths].ycor-c_ary[elem].ycor)\
+            +np.square(c_ary[oths].zcor-c_ary[elem].zcor)
+
+            d_n=np.sqrt(sum)                        #actual distance of two cells
+
+            R = c_ary[oths].radius+c_ary[elem].radius
+
+            if d_n==0:
                 pass
-            else:
-                sum=np.square(c_ary[y].xcor-c_ary[elem].xcor)\
-                +np.square(c_ary[y].ycor-c_ary[elem].ycor)\
-                +np.square(c_ary[y].zcor-c_ary[elem].zcor)
 
-                d_n=np.sqrt(sum)                #actual distance of two cells
+            elif d_n < R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
+                fac = (k * R) - d_n
 
-                R = c_ary[y].radius+c_ary[elem].radius
+                xdd = (c_ary[oths].xcor - c_ary[elem].xcor)/d_n
+                ydd = (c_ary[oths].ycor - c_ary[elem].ycor) / d_n
+                zdd = (c_ary[oths].zcor - c_ary[elem].zcor) / d_n
 
-                if d_n < R :                    #checks if cell[elem] is pushed by cell[y] only when d_n < R
+                d_x[elem] = xdd * fac + d_x[elem]
+                d_y[elem] = ydd * fac + d_y[elem]
+                d_z[elem] = zdd * fac + d_z[elem]
 
-                    fac=(k*R)-d_n
 
-                    d[(elem,y)] = d_n
-                    d[(y,elem)] = d[(elem,y)]
-    return d
+
+    return d_x , d_y , d_z
 
 def move():
 
-    delta = force()
+    delx,dely,delz = force()
 
+    for elem in c_ary:
+
+        c_ary[elem].xcor = c_ary[elem].xcor + delx[elem]
+        c_ary[elem].ycor = c_ary[elem].ycor + dely[elem]
+        c_ary[elem].zcor = c_ary[elem].zcor + delz[elem]
+
+    return delx, dely, delz
 
 def divide(p):
     pass
@@ -221,7 +236,8 @@ def event():                                #what happens to cell in time step#
         elif c_ary[elem].status:
             growth(elem)                    #if cell=on -> grows#
 
-    move()
+    f1,f2,f3=move()
+    return f1,f2,f3
 
 
 
@@ -238,14 +254,14 @@ def update(end):
 
     for step in time:
 
-        event()
+        f1,f2,f3=event()
+    return f1,f2,f3
 
 
 
 
 
-
-update(1)
+fx,fy,fz=update(1)
 
 rei = ''
 bla=0
@@ -279,17 +295,25 @@ x_list=[]
 y_list=[]
 z_list=[]
 r_list=[]
+F_x=[]
+F_y=[]
+F_z=[]
+
 vtk_writer = vtktools.VTK_XML_Serial_Unstructured()
 
 for elem in c_ary:
-    x_list.append(pos[elem][0])
-    y_list.append(pos[elem][1])
+    x_list.append(c_ary[elem].xcor)
+    y_list.append(c_ary[elem].ycor)
     z_list.append(0.0)
     r_list.append(c_ary[elem].radius)
+    F_x.append(fx[elem])
+    F_y.append(fy[elem])
+    F_z.append(fz[elem])
 
 print (x_list)
 print(y_list)
 print (r_list)
 
-vtk_writer.snapshot("cell_arrangements.vtu", x_list, y_list, z_list, radii = r_list)
 
+vtk_writer.snapshot("cell_arrangements.vtu",  x_list, y_list, z_list, radii = r_list, x_force = F_x, y_force = F_y, z_force = F_z )
+vtk_writer.writePVD("cell_arrangements.pvd")
