@@ -168,65 +168,77 @@ def occupy(m,id):                              #cellplacement
             resident[m] = c_ary[id].mid
 
 
-def force():                                     #calculates movement by forcecalc of cells pushing
+def force():                                    #calculates movement by forcecalc of cells pushing
 
-    for elem in c_ary:
-        fx[elem]=0
-        fy[elem]=0
-        fz[elem]=0
-        for oths in c_ary:
+    thres=np.zeros(ncells)                      #array for saving the fac as threshold
 
-            if c_ary[elem].xcor <= c_ary[elem].radius:
-                c_ary[elem].xcor = c_ary[elem].radius
-            if c_ary[elem].ycor <= c_ary[elem].radius:
-                c_ary[elem].ycor = c_ary[elem].radius
-            if c_ary[elem].zcor <= c_ary[elem].radius:
-                c_ary[elem].zcor = c_ary[elem].radius
+    for i in range(100):
+        for elem in c_ary:
+            fx[elem]=0
+            fy[elem]=0
+            fz[elem]=0
+            for oths in c_ary:
 
-            sum=np.square(c_ary[oths].xcor-c_ary[elem].xcor)\
-            +np.square(c_ary[oths].ycor-c_ary[elem].ycor)\
-            +np.square(c_ary[oths].zcor-c_ary[elem].zcor)
+                if c_ary[elem].xcor <= c_ary[elem].radius:
+                    c_ary[elem].xcor = c_ary[elem].radius
+                if c_ary[elem].ycor <= c_ary[elem].radius:
+                    c_ary[elem].ycor = c_ary[elem].radius
+                if c_ary[elem].zcor <= c_ary[elem].radius:
+                    c_ary[elem].zcor = c_ary[elem].radius
 
-            d_n=np.sqrt(sum)                        #actual distance of two cells
+                sum=np.square(c_ary[oths].xcor-c_ary[elem].xcor)\
+                +np.square(c_ary[oths].ycor-c_ary[elem].ycor)\
+                +np.square(c_ary[oths].zcor-c_ary[elem].zcor)
 
-            R = c_ary[oths].radius+c_ary[elem].radius
+                d_n=np.sqrt(sum)                            #actual distance of two cells
 
-            if d_n==0:
-                pass
+                R = c_ary[oths].radius+c_ary[elem].radius
 
-            elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
-                fac = (k * R) - d_n
+                if d_n==0:
+                    pass
 
-                xdd = -(c_ary[oths].xcor - c_ary[elem].xcor)/d_n
-                ydd = -(c_ary[oths].ycor - c_ary[elem].ycor) / d_n
-                zdd = -(c_ary[oths].zcor - c_ary[elem].zcor) / d_n
+                elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
+                    fac = (k * R) - d_n
 
-                fx[elem] = xdd * fac + fx[elem]
-                fy[elem] = ydd * fac + fy[elem]
-                fz[elem] = zdd * fac + fz[elem]
+                    xdd = -(c_ary[oths].xcor - c_ary[elem].xcor)/d_n
+                    ydd = -(c_ary[oths].ycor - c_ary[elem].ycor) / d_n
+                    zdd = -(c_ary[oths].zcor - c_ary[elem].zcor) / d_n
+
+                    thres[elem]= fac
+
+                    fx[elem] = xdd * fac + fx[elem]
+                    fy[elem] = ydd * fac + fy[elem]
+                    fz[elem] = zdd * fac + fz[elem]
+
+        if max(thres)<0.1:
+            break
 
 
 
-def move():
+def move():                                                 #cells
 
     force()
     dt = 0.1 / max(max(fx),max(fy),max(fz))
-    for elem in c_ary:
 
+    for elem in c_ary:
         c_ary[elem].xcor = c_ary[elem].xcor + dt*fx[elem]
-        c_ary[elem].ycor = c_ary[elem].ycor + dt*fy[elem]
+        c_ary[elem].ycor = max(c_ary[elem].ycor + dt*fy[elem],radius)
         c_ary[elem].zcor = c_ary[elem].zcor + dt*fz[elem]
 
-        if c_ary[elem].xcor <= c_ary[elem].radius:
-            c_ary[elem].xcor = c_ary[elem].radius
-        if c_ary[elem].ycor <= c_ary[elem].radius:
-            c_ary[elem].ycor = c_ary[elem].radius
-        if c_ary[elem].zcor <= c_ary[elem].radius:
-            c_ary[elem].zcor = c_ary[elem].radius
 
+def rdspot(p):
+
+    r_r=c_ary[p].radius
+    
+    x_r,y_r,z_r=rd.gauss(0, 1)
+
+
+    pass
 
 
 def divide(p):
+    rdspot(p)
+
     pass
 
 def growth(p):
