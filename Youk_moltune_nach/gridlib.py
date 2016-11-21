@@ -16,7 +16,7 @@ radius=1                          #set intial radius of cell
 maxrad=radius*2                   #max r which cell can have before division#
 k=0.9                             #factor how close neighboring cells can be
 g_rate=1                          #growthrate of radius
-
+F_g = 0.001                        #gravity
 # Dimensions
 nx, ny, nz = x, x, 1
 lx, ly, lz = 100.0, 100.0, 0.1
@@ -198,16 +198,18 @@ def force():                                    #calculates movement by forcecal
 
             elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
                 fac = (k * R) - d_n
+                grav = -4 * np.pi * np.square(c_ary[elem].radius) * F_g
 
-                xdd = -(c_ary[oths].xcor - c_ary[elem].xcor)/d_n
+                xdd = -(c_ary[oths].xcor - c_ary[elem].xcor) / d_n
                 ydd = -(c_ary[oths].ycor - c_ary[elem].ycor) / d_n
                 zdd = -(c_ary[oths].zcor - c_ary[elem].zcor) / d_n
 
-                thres[elem]= fac
+                thres[oths]= fac
 
                 fx[elem] = xdd * fac + fx[elem]
-                fy[elem] = ydd * fac + fy[elem]
+                fy[elem] = ydd * fac + fy[elem]+grav
                 fz[elem] = zdd * fac + fz[elem]
+        thres[elem]=max(thres)
 
     return max(thres)
 
@@ -217,12 +219,19 @@ def force():                                    #calculates movement by forcecal
 def move():                                                 #cells being moved as forces dictate
 
     thrs=force()
-    dt = 0.1 / max(max(fx),max(fy),max(fz))
-
+    if not max(np.square(max(fx)),np.square(max(fy)),np.square(max(fz))) == 0:
+        dt = 0.1 / np.sqrt(max(np.square(max(fx)),
+                       np.square(max(fy)),
+                       np.square(max(fz))))
+    else:
+        dt = 0.1
     for elem in c_ary:
+
+        y_cor=(c_ary[elem].ycor + dt * fy[elem])
         c_ary[elem].xcor = c_ary[elem].xcor + dt*fx[elem]
-        c_ary[elem].ycor = max(c_ary[elem].ycor + dt*fy[elem],radius)
+        c_ary[elem].ycor = max(y_cor,radius)
         c_ary[elem].zcor = c_ary[elem].zcor + dt*fz[elem]
+
     return thrs
 
 def rdspot(p):      #after muller 1959/Marsaglia 1972 picking random point on sphere uniform
@@ -247,7 +256,7 @@ def divide(p):        #takes rd point and places new cell
     c_num=max(c_ary.keys())
     c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, 2)
     c_ary[p].radius = radius
-    c_ary[p].status = False
+    c_ary[p].status = True
 
 
 def growth(p):
