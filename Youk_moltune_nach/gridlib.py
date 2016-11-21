@@ -1,4 +1,3 @@
-
 import random as rd
 import numpy as np
 import math
@@ -6,7 +5,7 @@ import classes as cl
 import vtktools
 
 #Parametersettings#
-x=100                              #sets gridsize
+x=100                             #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.5                         #set on_state cells n probability
 C_on=13.0                         #signalconcentration of activ cel#
