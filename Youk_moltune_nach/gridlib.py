@@ -15,7 +15,7 @@ feedback = 0                      #positiv(1) or negative(0) feedback#
 
 radius=1                          #set intial radius of cell
 maxrad=radius*2                   #max r which cell can have before division#
-k=1.0                             #factor how close neighboring cells can be
+k=0.9                             #factor how close neighboring cells can be
 g_rate=1                          #growthrate of radius
 
 # Dimensions
@@ -40,7 +40,7 @@ resident=np.zeros(npoints)    #spot has cell or not| int references#
 c_ary={}                      #cell-class ref#
 pos={}                        #dic for grid [0]=x_axis [1]=y_axis#
 
-print(npoints)
+ita=10
 
 fx = np.zeros(ncells)
 fy = np.zeros(ncells)
@@ -73,8 +73,8 @@ def initialize():                               #creats grid on which cells are 
 
 
 def stategamble():                      #prodces random booleanvalue according to place
-    hp = rd.random()                    #usage: setting initial state of cell
-
+                                        #usage: setting initial state of cell
+    hp = rd.random()
     if hp <= place:
         return True
     else:
@@ -172,74 +172,84 @@ def force():                                    #calculates movement by forcecal
 
     thres=np.zeros(ncells)                      #array for saving the fac as threshold
 
-    for i in range(100):
-        for elem in c_ary:
-            fx[elem]=0
-            fy[elem]=0
-            fz[elem]=0
-            for oths in c_ary:
 
-                if c_ary[elem].xcor <= c_ary[elem].radius:
-                    c_ary[elem].xcor = c_ary[elem].radius
-                if c_ary[elem].ycor <= c_ary[elem].radius:
-                    c_ary[elem].ycor = c_ary[elem].radius
-                if c_ary[elem].zcor <= c_ary[elem].radius:
-                    c_ary[elem].zcor = c_ary[elem].radius
+    for elem in c_ary:
+        fx[elem]=0
+        fy[elem]=0
+        fz[elem]=0
+        for oths in c_ary:
 
-                sum=np.square(c_ary[oths].xcor-c_ary[elem].xcor)\
-                +np.square(c_ary[oths].ycor-c_ary[elem].ycor)\
-                +np.square(c_ary[oths].zcor-c_ary[elem].zcor)
+            if c_ary[elem].xcor <= c_ary[elem].radius:
+                c_ary[elem].xcor = c_ary[elem].radius
+            if c_ary[elem].ycor <= c_ary[elem].radius:
+                c_ary[elem].ycor = c_ary[elem].radius
+            if c_ary[elem].zcor <= c_ary[elem].radius:
+                c_ary[elem].zcor = c_ary[elem].radius
 
-                d_n=np.sqrt(sum)                            #actual distance of two cells
+            sum=np.square(c_ary[oths].xcor-c_ary[elem].xcor)\
+            +np.square(c_ary[oths].ycor-c_ary[elem].ycor)\
+            +np.square(c_ary[oths].zcor-c_ary[elem].zcor)
 
-                R = c_ary[oths].radius+c_ary[elem].radius
+            d_n=np.sqrt(sum)                            #actual distance of two cells
 
-                if d_n==0:
-                    pass
+            R = c_ary[oths].radius+c_ary[elem].radius
 
-                elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
-                    fac = (k * R) - d_n
+            if d_n==0:
+                pass
 
-                    xdd = -(c_ary[oths].xcor - c_ary[elem].xcor)/d_n
-                    ydd = -(c_ary[oths].ycor - c_ary[elem].ycor) / d_n
-                    zdd = -(c_ary[oths].zcor - c_ary[elem].zcor) / d_n
+            elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
+                fac = (k * R) - d_n
 
-                    thres[elem]= fac
+                xdd = -(c_ary[oths].xcor - c_ary[elem].xcor)/d_n
+                ydd = -(c_ary[oths].ycor - c_ary[elem].ycor) / d_n
+                zdd = -(c_ary[oths].zcor - c_ary[elem].zcor) / d_n
 
-                    fx[elem] = xdd * fac + fx[elem]
-                    fy[elem] = ydd * fac + fy[elem]
-                    fz[elem] = zdd * fac + fz[elem]
+                thres[elem]= fac
 
-        if max(thres)<0.1:
-            break
+                fx[elem] = xdd * fac + fx[elem]
+                fy[elem] = ydd * fac + fy[elem]
+                fz[elem] = zdd * fac + fz[elem]
 
+    return max(thres)
 
 
-def move():                                                 #cells
 
-    force()
+
+def move():                                                 #cells being moved as forces dictate
+
+    thrs=force()
     dt = 0.1 / max(max(fx),max(fy),max(fz))
 
     for elem in c_ary:
         c_ary[elem].xcor = c_ary[elem].xcor + dt*fx[elem]
         c_ary[elem].ycor = max(c_ary[elem].ycor + dt*fy[elem],radius)
         c_ary[elem].zcor = c_ary[elem].zcor + dt*fz[elem]
+    return thrs
 
+def rdspot(p):      #after muller 1959/Marsaglia 1972 picking random point on sphere uniform
 
-def rdspot(p):
+    x_r = rd.gauss(0, 1)
+    y_r = rd.gauss(0, 1)
+    z_r = rd.gauss(0, 1)
+    uni = np.sqrt(np.square(x_r) + np.square(y_r) + np.square(z_r))
 
-    r_r=c_ary[p].radius
-    
-    x_r,y_r,z_r=rd.gauss(0, 1)
+    x_r = (x_r * radius) / uni
+    y_r = (y_r * radius) / uni
+    z_r = (z_r * radius) / uni
 
+    return x_r, y_r, z_r
 
-    pass
+def divide(p):        #takes rd point and places new cell
 
+    xn,yn,zn=rdspot(p)
+    xn = max((xn + c_ary[p].xcor),radius)
+    yn = max((yn + c_ary[p].ycor),radius)
+    zn = max((zn + c_ary[p].zcor),radius)
+    c_num=max(c_ary.keys())
+    c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, 2)
+    c_ary[p].radius = radius
+    c_ary[p].status = False
 
-def divide(p):
-    rdspot(p)
-
-    pass
 
 def growth(p):
 
@@ -247,7 +257,7 @@ def growth(p):
 
 def event():                                #what happens to cell in time step#
 
-    for elem in c_ary:
+    for elem in c_ary.keys():               #keys()cause new created cells do nothing
 
         if c_ary[elem].radius >= maxrad:    #cell_r big enough -> division#
             divide(elem)
@@ -255,18 +265,17 @@ def event():                                #what happens to cell in time step#
         elif c_ary[elem].status:
             growth(elem)                    #if cell=on -> grows#
 
-    move()
-
-
-
-
+    for i in range(ita):
+        thres = move()
+        if thres <= 0.1:
+            break
 
 
 def update(end):
 
-    start=0
+    start = 0
     stop = end
-    time = np.linspace(start, stop, end*10)
+    time = np.linspace(start, stop, num=10)
 
     timer=0
 
@@ -305,8 +314,8 @@ def pic(a):
 
 #run program
 
-update(1)
-
+update(10)
+print(max(c_ary.keys()))
 """
 rei = ''
 bla=0
