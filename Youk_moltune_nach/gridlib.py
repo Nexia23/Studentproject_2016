@@ -1,8 +1,8 @@
 import random as rd
 import numpy as np
-import math
 import classes as cl
 import vtktools
+
 
 #Parametersettings#
 x=100                             #sets gridsize
@@ -15,8 +15,9 @@ feedback = 0                      #positiv(1) or negative(0) feedback#
 radius=1                          #set intial radius of cell
 maxrad=radius*2                   #max r which cell can have before division#
 k=0.9                             #factor how close neighboring cells can be
-g_rate=1                          #growthrate of radius
-F_g = 0.001                        #gravity
+g_rate=0.2                          #growthrate of radius
+
+F_g = 0.00001                       #gravity
 # Dimensions
 nx, ny, nz = x, x, 1
 lx, ly, lz = 100.0, 100.0, 0.1
@@ -66,9 +67,9 @@ def initialize():                               #creats grid on which cells are 
             if checkneighbor(cc):               #check if cell can be placed#
 
                 if put <= n:
-                    c_num+=1
                     c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], 2)
                     occupy(cc,c_num)
+                    c_num += 1
 
 
 def stategamble():                      #prodces random booleanvalue according to place
@@ -133,7 +134,7 @@ def outersq(p):
                 print ('hey f2')
                 return False
 
-            eq = math.sqrt((pos[poi][0] - pos[p][0]) ** 2 + (pos[poi][1] - pos[p][1]) ** 2)
+            eq = np.sqrt((pos[poi][0] - pos[p][0]) ** 2 + (pos[poi][1] - pos[p][1]) ** 2)
 
             if eq <= rad:               #if smaller or same than position inside the cell
 
@@ -157,7 +158,7 @@ def occupy(m,id):                              #cellplacement
                     if poi == m:
                         pass
 
-                    eq = math.sqrt((pos[poi][0] - c_ary[id].xcor) ** 2 + (pos[poi][1] - c_ary[id].ycor) ** 2)
+                    eq = np.sqrt((pos[poi][0] - c_ary[id].xcor) ** 2 + (pos[poi][1] - c_ary[id].ycor) ** 2)
 
                     if eq <= rad:               #if smaller or same than position inside the cell
 
@@ -198,7 +199,7 @@ def force():                                    #calculates movement by forcecal
 
             elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
                 fac = (k * R) - d_n
-                grav = -4 * np.pi * np.square(c_ary[elem].radius) * F_g
+
 
                 xdd = -(c_ary[oths].xcor - c_ary[elem].xcor) / d_n
                 ydd = -(c_ary[oths].ycor - c_ary[elem].ycor) / d_n
@@ -207,7 +208,7 @@ def force():                                    #calculates movement by forcecal
                 thres[oths]= fac
 
                 fx[elem] = xdd * fac + fx[elem]
-                fy[elem] = ydd * fac + fy[elem]+grav
+                fy[elem] = ydd * fac + fy[elem]
                 fz[elem] = zdd * fac + fz[elem]
         thres[elem]=max(thres)
 
@@ -226,8 +227,9 @@ def move():                                                 #cells being moved a
     else:
         dt = 0.1
     for elem in c_ary:
+        grav = -4 * np.pi * np.square(c_ary[elem].radius) * F_g
+        y_cor=(c_ary[elem].ycor + dt * fy[elem] + grav)
 
-        y_cor=(c_ary[elem].ycor + dt * fy[elem])
         c_ary[elem].xcor = c_ary[elem].xcor + dt*fx[elem]
         c_ary[elem].ycor = max(y_cor,radius)
         c_ary[elem].zcor = c_ary[elem].zcor + dt*fz[elem]
@@ -254,6 +256,7 @@ def divide(p):        #takes rd point and places new cell
     yn = max((yn + c_ary[p].ycor),radius)
     zn = max((zn + c_ary[p].zcor),radius)
     c_num=max(c_ary.keys())
+
     c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, 2)
     c_ary[p].radius = radius
     c_ary[p].status = True
@@ -277,21 +280,8 @@ def event():                                #what happens to cell in time step#
         thres = move()
         if thres <= 0.1:
             break
-
-
-def update(end):
-
-    start = 0
-    stop = end
-    time = np.linspace(start, stop, num=10)
-
-    timer=0
-
-    initialize()
-
-    for step in time:
-       event()
-       pic(step)
+    bla=cl.c_grad(len(c_ary),x,n,place,C_on,K,feedback,c_ary)
+    bla.calcDistances(2)
 
 def pic(a):
     x_list = []
@@ -319,11 +309,26 @@ def pic(a):
     vtk_writer.writePVD("cell_arrangements"+str(a)+".pvd")
 
 
+def update(end):
+
+    start = 0
+    stop = end
+    time = range(start, stop)
+
+    timer=0
+
+    initialize()
+
+    for step in time:
+       event()
+       pic(step)
+
+
 
 #run program
 
 update(10)
-print(max(c_ary.keys()))
+
 """
 rei = ''
 bla=0

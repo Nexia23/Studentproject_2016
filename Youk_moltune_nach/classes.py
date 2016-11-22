@@ -1,3 +1,4 @@
+import numpy as np
 
 class cell:
     """
@@ -133,3 +134,78 @@ class Molecule:
 
     def __repr__(self): #string "self.name"		#print(list(object))
         return self.name
+"""""
+    x =  sets gridsize
+    n = set chance of cells n probability
+    place  set on_state cells n probability
+    C_on signalconcentration of activ cell
+    K = threshold c#
+    feedback = positiv(1) or negative(0) feedback
+    #min_cell=5                             #set minimum of cellneigbors for new cellcreation#
+    c_ary = c_ary
+    gamma_ =  degradations constant#
+    diff_const =  diffusions constant#
+
+    lambda_ = float(np.sqrt(bruch))  radius of signalcloud of cell#
+
+"""""
+class c_grad:
+
+    def __init__(self, c_num,x,n,place,C_on,K,feedback,c_ary):
+        #Parametersettings#
+        self.c_num = c_num
+        self.x = x
+        self.n = n
+        self.place = place
+        self.C_on = C_on
+        self.K = K
+        self.feedback = feedback
+        self.c_ary = c_ary
+        gamma_ = 7.0
+        diff_const = 1.0
+        bruch = float(diff_const / gamma_)
+        lambda_ = float(np.sqrt(bruch))
+
+
+        self.r = np.zeros(c_num)            #list of cellposition in space#
+        self.state = np.zeros(c_num)        #list of default state of each cell#
+        self.C_i = np.zeros(c_num)          #concentration of each cell at time i #
+        self.C_print = np.zeros(c_num)      #actual concentrations at position cells + neighbor#
+
+    @property
+    def c_num(self):
+        return self.__c_num
+
+    @c_num.setter
+    def c_num(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("There must be cells")
+        else:
+            self.__c_num = value
+
+    def calcDistances(self,c_num):
+
+        for i in range(len(self.r)):
+            self.r[i] = np.sqrt(np.square(self.c_ary[i].xcor - self.c_ary[c_num].xcor)
+                           + np.square(self.c_ary[i].ycor - self.c_ary[c_num].ycor)
+                           + np.square(self.c_ary[i].zcor - self.c_ary[c_num].zcor))
+            # print(r[i])
+
+        return self.r
+
+    def calc_cval(self,step, i):
+        c_neighbor = 0.0
+        self.calcDistances(i)
+        # print(r)
+
+        for j in range(len(self.C_i)):  # nachbarzellen_c aufaddieren
+            if j != i:
+                c_neighbor = self.C_t[step][j] * np.exp(-self.r[j] / self.lambda_) + c_neighbor
+
+        c_value = c_neighbor + self.C_t[step][i]
+
+        self.C_i[i] = c_value
+        self.C_print[i] = c_value
+
+
+

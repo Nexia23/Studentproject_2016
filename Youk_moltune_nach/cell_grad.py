@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 import random as rd
 import gridlib as gl
 
@@ -9,25 +8,23 @@ import gridlib as gl
 gamma_ = 7.0                            #degradations constant#
 diff_const = 1.0                        #diffusions constant#
 bruch = float(diff_const/gamma_)
-lambda_ = float(math.sqrt(bruch))       #radius of signalcloud of cell#
+lambda_ = float(np.sqrt(bruch))       #radius of signalcloud of cell#
 
 #Parametersettings#
 
-x=gl.x                                  #sets gridsize
-n=gl.n                                  #set chance of cells n probability
-place=gl.place                          #set on_state cells n probability
-C_on=gl.C_on                            #signalconcentration of activ cell#
+x = gl.x                                  #sets gridsize
+n = gl.n                                  #set chance of cells n probability
+place = gl.place                          #set on_state cells n probability
+C_on = gl.C_on                            #signalconcentration of activ cell#
 K =  gl.K                               #threshold c#
 feedback = gl.feedback                  #positiv(1) or negative(0) feedback#
 #min_cell=5                             #set minimum of cellneigbors for new cellcreation#
 c_ary=gl.c_ary
 
 r = np.zeros(len(gl.c_ary))        #list of cellposition in space#
-state=np.arange(len(gl.c_ary))     #list of default state of each cell#
+state = np.zeros(len(gl.c_ary))                  #list of default state of each cell#
 C_i = np.zeros(len(gl.c_ary))      # concentration of each cell at time i #
-C_print=np.zeros(len(gl.c_ary))    #actual concentrations at position cells + neighbor#
-resident=np.zeros(len(gl.c_ary))   #spot has cell or not#
-
+C_print = np.zeros(len(gl.c_ary))    #actual concentrations at position cells + neighbor#
 
 #outputdata#
 
@@ -74,38 +71,10 @@ def calc_cval(step,i):
     C_print[i]=c_value
 
 
-def calc_expterm(i):
-    f_n = 0
-    calcDistances(i)
-    for j in range(len(r)):          #calc the signal strengh f_n for cell i #
-        if j != i:
-            f_n = np.exp(-r[j]/lambda_)+f_n
-    return f_n
 
-
-def set_state():                    #function to set concentration#
-
-    if feedback==1:
-        for j, val in enumerate(state):
-            if c_ary[j].status:
-                if val== 1:                     #anyone with 1 is activ
-                    C_i[j]=C_on                 #and concentration is set on c_on for active cell
-                    C_print[j]=C_on
-                else:
-                    C_i[j]=1                    #or inactive than set to 1
-                    C_print[j]=1
-
-
-    elif feedback==0:
-        for j, val in enumerate(state):
-            if c_ary[j].status:
-                if val == 0:            #anyone with 0 is activ
-                    C_i[j] = C_on       #and concentration is set on c_on for active cell
-                    C_print[j] = C_on
-                else:
-                    C_i[j] = 1          #or inactive than set to 1
-                    C_print[j] = 1
-"""def create(i):                          #function who looks at dircet neighbors to decide if cell comes to life
+"""""
+def create(i):
+#function who looks at dircet neighbors to decide if cell comes to life
 
     counter=0
     life=False
@@ -222,23 +191,40 @@ def figureprint (z):
                 else:  # else(if off) blue dot
                     zplot.plot(c_ary[i].xcor, c_ary[i].ycor, 'bo')
 
-def rdstate():
+def ini_cell_c():
 
-    for i in range(len(c_ary) + 1):  # produce random state
+    for i in range(len(c_ary) + 1):           #produce random state
 
         hp = rd.random()
         if c_ary[i].status:
             if hp <= place:
                 state[i] = 1
-                i += 1
+                set_c(i)
             else:
                 state[i] = 0
-                i += 1
+                set_c(i)
         else:
             state[i] = 0
-            C_i[i] = 0
-            i += 1
+            set_c(i)
 
+
+def set_c(p):
+
+     if state(p) == 0:
+         if feedback == 1:
+             C_i[p] = 1                     #or inactive than set to 1
+             C_print[p] = 1
+         elif feedback == 0:
+             C_i[p] = C_on                  #and concentration is set on c_on for active cell
+             C_print[p] = C_on
+
+     elif state(p) == 1:
+         if feedback == 1:
+             C_i[p] = C_on  # and concentration is set on c_on for active cell
+             C_print[p] = C_on
+         elif feedback == 0:
+             C_i[p] = 1  # or inactive than set to 1
+             C_print[p] = 1
 
 def update(end):
 
@@ -251,8 +237,7 @@ def update(end):
 
 
 
-    rdstate()
-    set_state()
+    ini_cell_c()
 
     for step in time:
 
