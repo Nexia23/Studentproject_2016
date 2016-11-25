@@ -32,9 +32,6 @@ y_c = np.arange(0, ly + dy, dy, dtype='float64')
 z_c = np.arange(0, lz + dz, dz, dtype='float64')
 
 r = np.zeros(npoints)         #list of cellposition in space#
-
-C_print=np.zeros(npoints)     #actual concentrations at position cells + neighbor#
-
 C_t=[]                        # concentrations at time step#
 state_t=[]                    #lists all individual cellstates at timestep#
 
@@ -284,16 +281,17 @@ def event(step):                                #what happens to cell in time st
 
     cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary)
 
-
     for i in range(ita):
         thres = move()
         if thres <= 0.1:
             break
 
-    C_i=cgrad.calc_cval(step,C_t)
+    C_true = cgrad.calc_cval(step,C_t)
+
+    C_i,state=cgrad.switch()
+    state_t.append(list(state))
     C_t.append(list(C_i))
 
-    #state_t.append(list(state))
 def pic(a):
     x_list = []
     y_list = []

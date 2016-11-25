@@ -235,17 +235,14 @@ class c_grad:
 
         for i in range(len(self.c_ary)):  # produce random state
 
-            hp = rd.random()
             if self.c_ary[i].status:
-                if hp <= self.place:
-                    self.state[i] = 1
-                    self.set_c(i)
-                else:
-                    self.state[i] = 0
-                    self.set_c(i)
+                self.state[i] = 1
+                self.set_c(i)
+
             else:
                 self.state[i] = 0
                 self.set_c(i)
+
         return (self.C_i , self.state)
 
     def set_c(self,p):
@@ -270,4 +267,43 @@ class c_grad:
                 self.C_i[p] = 1  # or inactive than set to 1
                 self.C_print[p] = 1
 
+    def switch(self):  # determine cell cis status for next step.#
+        for ci in range(len(self.C_i)):
+            on = False  # boolean to determine cells next state
 
+            if self.feedback == 1:  # positiv feedback
+
+                if self.C_i[ci] - self.K > 0:  # active state of autonomous cell#
+                    on = True
+
+                elif self.C_i[ci] - self.K <= 0:  # deactive state of autonomous cell#
+                    on = False
+
+                if self.c_ary[ci].status:  # if off stays off if on cell can change
+                    if on:
+                        self.state[ci] = 1
+                        self.C_i[ci] = self.C_on
+                    else:
+                        self.state[ci] = 0
+                        self.C_i[ci] = 1
+                else:
+                    self.state[ci] = 0
+                    self.C_i[ci] = 0
+
+            elif self.feedback == 0:  # negative feedback#
+
+                if self.C_i[ci] - self.K > 0:  # deactive state of autonomous cell#
+                    on = False
+
+                elif self.C_i[ci] - self.K <= 0:  # active state of autonomous cell#
+                    # print('auto ac')
+                    on = True
+
+                if on:
+                    self.state[ci] = 1
+                    self.C_i[ci] = self.C_on
+                else:
+                    self.state[ci] = 0
+                    self.C_i[ci] = 1
+
+        return self.C_i, self.state
