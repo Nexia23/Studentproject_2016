@@ -21,10 +21,10 @@ feedback = gl.feedback                  #positiv(1) or negative(0) feedback#
 #min_cell=5                             #set minimum of cellneigbors for new cellcreation#
 c_ary=gl.c_ary
 
-r = np.zeros(len(gl.c_ary))        #list of cellposition in space#
-state = np.zeros(len(gl.c_ary))                  #list of default state of each cell#
-C_i = np.zeros(len(gl.c_ary))      # concentration of each cell at time i #
-C_print = np.zeros(len(gl.c_ary))    #actual concentrations at position cells + neighbor#
+r = np.zeros(len(gl.c_ary))             #list of cellposition in space#
+state = np.zeros(len(gl.c_ary))         #list of default state of each cell#
+C_i = np.zeros(len(gl.c_ary))           #concentration of each cell at time i #
+C_print = np.zeros(len(gl.c_ary))       #actual concentrations at position cells + neighbor#
 
 #outputdata#
 
@@ -112,7 +112,6 @@ def switch (ci):                        #determine cell cis status for next step
         elif C_i[ci] - K <= 0:          #deactive state of autonomous cell#
 
             on = False
-
 
         if c_ary[ci].status:            #if off stays off if on cell can change
             if on:

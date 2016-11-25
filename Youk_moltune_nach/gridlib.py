@@ -32,15 +32,17 @@ y_c = np.arange(0, ly + dy, dy, dtype='float64')
 z_c = np.arange(0, lz + dz, dz, dtype='float64')
 
 r = np.zeros(npoints)         #list of cellposition in space#
-state=np.arange(npoints)      #list of default state of each cell#
-C_i = np.zeros(npoints)       #concentration of each cell at time i #
+
 C_print=np.zeros(npoints)     #actual concentrations at position cells + neighbor#
+
+C_t=[]                        # concentrations at time step#
+state_t=[]                    #lists all individual cellstates at timestep#
 
 resident=np.zeros(npoints)    #spot has cell or not| int references#
 c_ary={}                      #cell-class ref#
 pos={}                        #dic for grid [0]=x_axis [1]=y_axis#
 
-ita=10
+ita=10                        #iteration of movefunc, cause explicit procedure
 
 fx = np.zeros(ncells)
 fy = np.zeros(ncells)
@@ -71,6 +73,11 @@ def initialize():                               #creats grid on which cells are 
                     occupy(cc,c_num)
                     c_num += 1
 
+    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary)
+    C_i, state = cgrad.ini_cell_c()
+
+    C_t.append(list(C_i))
+    state_t.append(list(state))
 
 def stategamble():                      #prodces random booleanvalue according to place
                                         #usage: setting initial state of cell
@@ -172,7 +179,6 @@ def force():                                    #calculates movement by forcecal
 
     thres=np.zeros(ncells)                      #array for saving the fac as threshold
 
-
     for elem in c_ary:
         fx[elem]=0
         fy[elem]=0
@@ -266,7 +272,7 @@ def growth(p):
 
     c_ary[p].radius = c_ary[p].radius + g_rate
 
-def event():                                #what happens to cell in time step#
+def event(step):                                #what happens to cell in time step#
 
     for elem in c_ary.keys():               #keys()cause new created cells do nothing
 
@@ -276,13 +282,18 @@ def event():                                #what happens to cell in time step#
         elif c_ary[elem].status:
             growth(elem)                    #if cell=on -> grows#
 
+    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary)
+
+
     for i in range(ita):
         thres = move()
         if thres <= 0.1:
             break
-    bla=cl.c_grad(len(c_ary),x,n,place,C_on,K,feedback,c_ary)
-    bla.calcDistances(2)
 
+    C_i=cgrad.calc_cval(step,C_t)
+    C_t.append(list(C_i))
+
+    #state_t.append(list(state))
 def pic(a):
     x_list = []
     y_list = []
@@ -320,7 +331,7 @@ def update(end):
     initialize()
 
     for step in time:
-       event()
+       event(step)
        pic(step)
 
 

@@ -1,4 +1,5 @@
 import numpy as np
+import random as rd
 
 class cell:
     """
@@ -164,18 +165,18 @@ class c_grad:
         gamma_ = 7.0
         diff_const = 1.0
         bruch = float(diff_const / gamma_)
-        lambda_ = float(np.sqrt(bruch))
+        self.lambda_ = float(np.sqrt(bruch))
 
 
         self.r = np.zeros(c_num)            #list of cellposition in space#
-        self.state = np.zeros(c_num)        #list of default state of each cell#
+        self.state = np.zeros(c_num)  # list of default state of each cell#
         self.C_i = np.zeros(c_num)          #concentration of each cell at time i #
         self.C_print = np.zeros(c_num)      #actual concentrations at position cells + neighbor#
+
 
     @property
     def c_num(self):
         return self.__c_num
-
     @c_num.setter
     def c_num(self, value):
         if not (isinstance(value, float) or isinstance(value, int)):
@@ -189,23 +190,84 @@ class c_grad:
             self.r[i] = np.sqrt(np.square(self.c_ary[i].xcor - self.c_ary[c_num].xcor)
                            + np.square(self.c_ary[i].ycor - self.c_ary[c_num].ycor)
                            + np.square(self.c_ary[i].zcor - self.c_ary[c_num].zcor))
-            # print(r[i])
 
         return self.r
 
-    def calc_cval(self,step, i):
-        c_neighbor = 0.0
-        self.calcDistances(i)
-        # print(r)
+    def calc_cval(self,step, C_t):
 
-        for j in range(len(self.C_i)):  # nachbarzellen_c aufaddieren
-            if j != i:
-                c_neighbor = self.C_t[step][j] * np.exp(-self.r[j] / self.lambda_) + c_neighbor
+        for i in range(len(self.C_i)):
+            c_neighbor = 0.0
+            self.calcDistances(i)
 
-        c_value = c_neighbor + self.C_t[step][i]
+            for j in range(len(self.C_i)):  # nachbarzellen_c aufaddieren
 
-        self.C_i[i] = c_value
-        self.C_print[i] = c_value
+                conz=self.catcher_c(step,C_t,j)
 
+                if j != i:
+                    c_neighbor = conz * np.exp(-self.r[j] / self.lambda_) + c_neighbor
+
+            conz = self.catcher_c(step, C_t, i)
+            c_value = c_neighbor + conz
+
+            self.C_i[i] = c_value
+            self.C_print[i] = c_value
+
+        return self.C_i
+
+    def catcher_c(self,step,C_t,j):
+        try:
+            conz = C_t[step][j]
+
+        except IndexError:
+            if self.c_ary[j].status == False:
+                if self.feedback == 1:
+                    conz = 1                    #inactive than set to 1
+                elif self.feedback == 0:        #active set to C_on
+                    conz = self.C_on
+            else:
+                if self.feedback == 1:
+                    conz = self.C_on
+                elif self.feedback == 0:
+                    conz = 1
+        return conz
+
+    def ini_cell_c(self):
+
+        for i in range(len(self.c_ary)):  # produce random state
+
+            hp = rd.random()
+            if self.c_ary[i].status:
+                if hp <= self.place:
+                    self.state[i] = 1
+                    self.set_c(i)
+                else:
+                    self.state[i] = 0
+                    self.set_c(i)
+            else:
+                self.state[i] = 0
+                self.set_c(i)
+        return (self.C_i , self.state)
+
+    def set_c(self,p):
+
+        if self.c_ary[p].status == False:
+
+            if self.feedback == 1:
+                self.C_i[p] = 1  # or inactive than set to 1
+                self.C_print[p] = 1
+
+            elif self.feedback == 0:
+                self.C_i[p] = self.C_on  # and concentration is set on c_on for active cell
+                self.C_print[p] = self.C_on
+
+        elif self.c_ary[p].status == True:
+
+            if self.feedback == 1:
+                self.C_i[p] = self.C_on  # and concentration is set on c_on for active cell
+                self.C_print[p] = self.C_on
+
+            elif self.feedback == 0:
+                self.C_i[p] = 1  # or inactive than set to 1
+                self.C_print[p] = 1
 
 
