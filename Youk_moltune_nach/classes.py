@@ -1,5 +1,5 @@
 import numpy as np
-import random as rd
+
 
 class cell:
     """
@@ -162,9 +162,9 @@ class c_grad:
         self.K = K
         self.feedback = feedback
         self.c_ary = c_ary
-        gamma_ = 7.0
-        diff_const = 1.0
-        bruch = float(diff_const / gamma_)
+        self.gamma_ = 7.0
+        self.diff_const = 1.0
+        bruch = float(self.diff_const / self.gamma_)
         self.lambda_ = float(np.sqrt(bruch))
 
 
@@ -204,7 +204,12 @@ class c_grad:
                 conz=self.catcher_c(step,C_t,j)
 
                 if j != i:
-                    c_neighbor = conz * np.exp(-self.r[j] / self.lambda_) + c_neighbor
+                    if self.r[j] < self.c_ary[i].radius:
+                        self.r[j]=self.c_ary[i].radius
+                    c_neighbor = conz \
+                                 *(self.c_ary[i].radius/self.r[j])\
+                                 * np.exp(-(self.r[j]-self.c_ary[i].radius) / self.lambda_)\
+                                 + c_neighbor
 
             conz = self.catcher_c(step, C_t, i)
             c_value = c_neighbor + conz
@@ -229,7 +234,18 @@ class c_grad:
                     conz = self.C_on
                 elif self.feedback == 0:
                     conz = 1
+        conz=self.conz_r(conz,j)
+
         return conz
+
+    def conz_r(self,c,i):                   #calc c for sphere cell
+
+        top=(c*self.gamma_)
+        down1=(4*np.pi*self.lambda_*self.c_ary[i].radius)
+        down2=self.lambda_+self.c_ary[i].radius
+        c_r=top/(down1*down2)
+
+        return c_r
 
     def ini_cell_c(self):
 
@@ -268,6 +284,7 @@ class c_grad:
                 self.C_print[p] = 1
 
     def switch(self):  # determine cell cis status for next step.#
+
         for ci in range(len(self.C_i)):
             on = False  # boolean to determine cells next state
 
@@ -304,6 +321,7 @@ class c_grad:
                     self.C_i[ci] = self.C_on
                 else:
                     self.state[ci] = 0
+
                     self.C_i[ci] = 1
 
         return self.C_i, self.state

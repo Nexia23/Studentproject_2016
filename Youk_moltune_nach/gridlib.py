@@ -15,9 +15,11 @@ feedback = 0                      #positiv(1) or negative(0) feedback#
 radius=1                          #set intial radius of cell
 maxrad=radius*2                   #max r which cell can have before division#
 k=0.9                             #factor how close neighboring cells can be
-g_rate=0.2                          #growthrate of radius
+g_rate=0.2                        #growthrate of radius
 
-F_g = 0.00001                       #gravity
+F_g = 0.0001                       #gravity
+threeD=False
+
 # Dimensions
 nx, ny, nz = x, x, 1
 lx, ly, lz = 100.0, 100.0, 0.1
@@ -43,7 +45,10 @@ ita=10                        #iteration of movefunc, cause explicit procedure
 
 fx = np.zeros(ncells)
 fy = np.zeros(ncells)
-fz = np.zeros(ncells)
+if threeD:
+    fz = np.zeros(ncells)
+else:
+    fz=np.zeros(ncells)
 
 def initialize():                               #creats grid on which cells are placed by chance
 
@@ -104,7 +109,6 @@ def border(pt):                         #checks for outofbounds around edges #
     else:
         print ('hey b_ok')
         return True
-
 
 def checkneighbor(p):                   #check if cell can be placed#
 
@@ -171,7 +175,6 @@ def occupy(m,id):                              #cellplacement
         else:
             resident[m] = c_ary[id].mid
 
-
 def force():                                    #calculates movement by forcecalc of cells pushing
 
     thres=np.zeros(ncells)                      #array for saving the fac as threshold
@@ -179,7 +182,8 @@ def force():                                    #calculates movement by forcecal
     for elem in c_ary:
         fx[elem]=0
         fy[elem]=0
-        fz[elem]=0
+        if threeD:
+            fz[elem]=0
         for oths in c_ary:
 
             if c_ary[elem].xcor <= c_ary[elem].radius:
@@ -212,13 +216,11 @@ def force():                                    #calculates movement by forcecal
 
                 fx[elem] = xdd * fac + fx[elem]
                 fy[elem] = ydd * fac + fy[elem]
-                fz[elem] = zdd * fac + fz[elem]
+                if threeD:
+                    fz[elem] = zdd * fac + fz[elem]
         thres[elem]=max(thres)
 
     return max(thres)
-
-
-
 
 def move():                                                 #cells being moved as forces dictate
 
@@ -235,7 +237,8 @@ def move():                                                 #cells being moved a
 
         c_ary[elem].xcor = c_ary[elem].xcor + dt*fx[elem]
         c_ary[elem].ycor = max(y_cor,radius)
-        c_ary[elem].zcor = c_ary[elem].zcor + dt*fz[elem]
+        if threeD:
+            c_ary[elem].zcor = c_ary[elem].zcor + dt*fz[elem]
 
     return thrs
 
@@ -243,7 +246,10 @@ def rdspot(p):      #after muller 1959/Marsaglia 1972 picking random point on sp
 
     x_r = rd.gauss(0, 1)
     y_r = rd.gauss(0, 1)
-    z_r = rd.gauss(0, 1)
+    if threeD:
+        z_r = rd.gauss(0, 1)
+    else:
+        z_r=0
     uni = np.sqrt(np.square(x_r) + np.square(y_r) + np.square(z_r))
 
     x_r = (x_r * radius) / uni
@@ -263,7 +269,6 @@ def divide(p):        #takes rd point and places new cell
     c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, 2)
     c_ary[p].radius = radius
     c_ary[p].status = True
-
 
 def growth(p):
 
@@ -288,9 +293,15 @@ def event(step):                                #what happens to cell in time st
 
     C_true = cgrad.calc_cval(step,C_t)
 
-    C_i,state=cgrad.switch()
+    C_i,state = cgrad.switch()
+    switch_cary(state)
+
     state_t.append(list(state))
     C_t.append(list(C_i))
+
+def switch_cary(state):
+    for elem in c_ary:
+        c_ary[elem].status = state[elem]
 
 def pic(a):
     x_list = []
@@ -321,10 +332,7 @@ def pic(a):
 def update(end):
 
     start = 0
-    stop = end
-    time = range(start, stop)
-
-    timer=0
+    time = range(start, end)
 
     initialize()
 
@@ -337,33 +345,4 @@ def update(end):
 #run program
 
 update(10)
-
-"""
-rei = ''
-bla=0
-for i in range(0, npoints):
-    bla+=1
-    rei = rei +'|'+ str(resident[i])
-    if str(resident[i])=='0.0':
-        rei=rei+' '
-    if i ==120:
-        print rei
-        break
-    elif pos[i][0]==lx and i!=0:
-        print rei
-        rei = ''
-rei = ''
-bla=0
-
-for i in range(0, npoints):
-    bla+=1
-    rei = rei +'|'+ str(i)
-    if i<x:
-        rei=rei+' '
-    if i == 120:
-        print rei
-        break
-    elif pos[i][0]==lx and i!=0:
-        print rei
-        rei = ''
- """
+print(state_t)
