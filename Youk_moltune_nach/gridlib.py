@@ -7,17 +7,17 @@ import vtktools
 #Parametersettings#
 x=100                             #sets gridsize
 n=1.0                             #set chance of cells n probability
-place=0.5                         #set on_state cells n probability
-C_on=13.0                         #signalconcentration of activ cel#
+place=0.6                         #set on_state cells n probability
+C_on=19.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
-feedback = 0                      #positiv(1) or negative(0) feedback#
+feedback = 1                      #positiv(1) or negative(0) feedback#
 
 radius=1                          #set intial radius of cell
 maxrad=radius*2                   #max r which cell can have before division#
-k=0.9                             #factor how close neighboring cells can be
+k=1.0                             #factor how close neighboring cells can be
 g_rate=0.2                        #growthrate of radius
 
-F_g = 0.0001                       #gravity
+F_g = 0.002                       #gravity
 threeD=False
 
 # Dimensions
@@ -41,14 +41,11 @@ resident=np.zeros(npoints)    #spot has cell or not| int references#
 c_ary={}                      #cell-class ref#
 pos={}                        #dic for grid [0]=x_axis [1]=y_axis#
 
-ita=10                        #iteration of movefunc, cause explicit procedure
+ita=20                        #iteration of movefunc, cause explicit procedure
 
 fx = np.zeros(ncells)
 fy = np.zeros(ncells)
-if threeD:
-    fz = np.zeros(ncells)
-else:
-    fz=np.zeros(ncells)
+fz=np.zeros(ncells)
 
 def initialize():                               #creats grid on which cells are placed by chance
 
@@ -75,7 +72,7 @@ def initialize():                               #creats grid on which cells are 
                     occupy(cc,c_num)
                     c_num += 1
 
-    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary)
+    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
     C_i, state = cgrad.ini_cell_c()
 
     C_t.append(list(C_i))
@@ -201,8 +198,8 @@ def force():                                    #calculates movement by forcecal
 
             R = c_ary[oths].radius+c_ary[elem].radius
 
-            if d_n==0:
-                pass
+            if d_n == 0:
+                continue
 
             elif d_n < k*R :                           #checks if cell[elem] is pushed by cell[y] only when d_n < R
                 fac = (k * R) - d_n
@@ -263,10 +260,13 @@ def divide(p):        #takes rd point and places new cell
     xn,yn,zn=rdspot(p)
     xn = max((xn + c_ary[p].xcor),radius)
     yn = max((yn + c_ary[p].ycor),radius)
-    zn = max((zn + c_ary[p].zcor),radius)
+    if threeD:
+        zn = max((zn + c_ary[p].zcor),radius)
+    else:
+        zn=2
     c_num=max(c_ary.keys())
 
-    c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, 2)
+    c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, zn)
     c_ary[p].radius = radius
     c_ary[p].status = True
 
@@ -284,7 +284,7 @@ def event(step):                                #what happens to cell in time st
         elif c_ary[elem].status:
             growth(elem)                    #if cell=on -> grows#
 
-    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary)
+    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
 
     for i in range(ita):
         thres = move()
@@ -344,5 +344,6 @@ def update(end):
 
 #run program
 
-update(10)
-print(state_t)
+update(30)
+#print(state_t)
+#print(C_t)

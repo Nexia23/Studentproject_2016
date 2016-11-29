@@ -152,11 +152,12 @@ class Molecule:
 """""
 class c_grad:
 
-    def __init__(self, c_num,x,n,place,C_on,K,feedback,c_ary):
+    def __init__(self, c_num,x,n,place,C_on,K,feedback,c_ary,ddd):
         #Parametersettings#
         self.c_num = c_num
         self.x = x
         self.n = n
+        self.ddd=ddd
         self.place = place
         self.C_on = C_on
         self.K = K
@@ -201,18 +202,20 @@ class c_grad:
 
             for j in range(len(self.C_i)):  # nachbarzellen_c aufaddieren
 
-                conz=self.catcher_c(step,C_t,j)
+                conz_j=self.catcher_c(step,C_t,j)
 
                 if j != i:
-                    if self.r[j] < self.c_ary[i].radius:
-                        self.r[j]=self.c_ary[i].radius
-                    c_neighbor = conz \
-                                 *(self.c_ary[i].radius/self.r[j])\
-                                 * np.exp(-(self.r[j]-self.c_ary[i].radius) / self.lambda_)\
-                                 + c_neighbor
 
-            conz = self.catcher_c(step, C_t, i)
-            c_value = c_neighbor + conz
+                    if self.r[j] <= (self.c_ary[i].radius):          #if r[j]< than 2*radius they touch so conz should =surface
+                        c_neighbor=conz_j+c_neighbor
+                    else:
+                        c_neighbor = conz_j \
+                                    *(self.c_ary[i].radius/self.r[j])\
+                                    * np.exp(-(self.r[j]-self.c_ary[i].radius) / self.lambda_)\
+                                    + c_neighbor
+
+            conz_i = self.catcher_c(step, C_t, i)
+            c_value = c_neighbor + conz_i
 
             self.C_i[i] = c_value
             self.C_print[i] = c_value
@@ -234,7 +237,8 @@ class c_grad:
                     conz = self.C_on
                 elif self.feedback == 0:
                     conz = 1
-        conz=self.conz_r(conz,j)
+        if self.ddd:
+            conz=self.conz_r(conz,j)
 
         return conz
 
@@ -286,7 +290,16 @@ class c_grad:
     def switch(self):  # determine cell cis status for next step.#
 
         for ci in range(len(self.C_i)):
+
             on = False  # boolean to determine cells next state
+
+            if self.ddd:
+
+                top=(1)
+                down1=(self.lambda_*self.c_ary[ci].radius)
+                down2=np.square(self.c_ary[ci].radius)
+                fac=top/(down1+down2)
+                self.K=self.K*fac
 
             if self.feedback == 1:  # positiv feedback
 
@@ -305,7 +318,7 @@ class c_grad:
                         self.C_i[ci] = 1
                 else:
                     self.state[ci] = 0
-                    self.C_i[ci] = 0
+                    self.C_i[ci] = 1
 
             elif self.feedback == 0:  # negative feedback#
 
