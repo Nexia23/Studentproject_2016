@@ -29,7 +29,7 @@
 # **************************************
 
 from evtk import writeBlockSize, writeArrayToFile, writeArraysToFile
-from xml import XmlWriter
+from xmlgrid import XmlWriter
 import sys
 import os
 

@@ -164,10 +164,10 @@ class c_grad:
         self.feedback = feedback
         self.c_ary = c_ary
         self.gamma_ = 7.0
-        self.diff_const = 1.0
+        self.diff_const = 6.0
         bruch = float(self.diff_const / self.gamma_)
         self.lambda_ = float(np.sqrt(bruch))
-
+        self.P=2000                         #particlenumber of production
 
         self.r = np.zeros(c_num)            #list of cellposition in space#
         self.state = np.zeros(c_num)  # list of default state of each cell#
@@ -204,10 +204,12 @@ class c_grad:
 
                 conz_j=self.catcher_c(step,C_t,j)
 
+                if j == i:
+                    continue
                 if j != i:
 
-                    if self.r[j] <= (self.c_ary[i].radius):          #if r[j]< than 2*radius they touch so conz should =surface
-                        c_neighbor=conz_j+c_neighbor
+                    if self.r[j] <= (self.c_ary[i].radius):          #if r[j]< radius they touch so conz should =surface
+                        c_neighbor = conz_j + c_neighbor
                     else:
                         c_neighbor = conz_j \
                                     *(self.c_ary[i].radius/self.r[j])\
@@ -244,10 +246,10 @@ class c_grad:
 
     def conz_r(self,c,i):                   #calc c for sphere cell
 
-        top=(c*self.gamma_)
-        down1=(4*np.pi*self.lambda_*self.c_ary[i].radius)
-        down2=self.lambda_+self.c_ary[i].radius
-        c_r=top/(down1*down2)
+        top=(self.P*self.c_ary[i].radius)
+        down1=(3*np.sqrt(self.diff_const*self.gamma_)*self.c_ary[i].radius)
+        down2=self.diff_const*3
+        c_r=top/(down1+down2)
 
         return c_r
 
