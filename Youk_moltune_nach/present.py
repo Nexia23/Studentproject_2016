@@ -39,7 +39,7 @@ class gridpic:
 
             for j in range(len(self.C_true)):  # nachbarzellen_c aufaddieren
 
-                if self.r[i] <= (self.c_ary[j].radius):          #if r[j]< radius they touch so conz should =surface
+                if self.r[j] <= (self.c_ary[j].radius):          #if r[j]< radius they touch so conz should =surface
                     c_neighbor = self.C_true[j] + c_neighbor
                 else:
                     c_neighbor = self.C_true[j] \

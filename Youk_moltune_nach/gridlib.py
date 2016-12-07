@@ -52,44 +52,81 @@ fx = np.zeros(ncells)
 fy = np.zeros(ncells)
 fz = np.zeros(ncells)
 
-def initialize():                               #creats grid on which cells are placed by chance
+def initialize():                                       #creats grid on which cells are placed by chance
     if not threeD:
         ce = 0
-        for row in range(len(y_c)):                 #grid saved in a dic#
-            for col in range(len(x_c)):
+        for row in range(x):                     #grid saved in a dic#
+            for col in range(x):
                 pos[ce] = [x_c[col], y_c[row]]
                 ce += 1
     else:
         ce = 0
-        for wth in range(len(y_c)):
-            for row in range(len(z_c)):  # grid saved in a dic#
-                for col in range(len(x_c)):
+        for wth in range(x):
+            for row in range(x):                 #grid saved in a dic#
+                for col in range(x):
 
                     pos[ce] = [x_c[col], y_c[row],z_c[wth]]
                     ce += 1
-    c_num=0
-    start= (x + 1 ) ** 2 * (maxrad)
-    stop = (x + 1) ** 2 * (maxrad + 1)
-    print start,stop
-    for cc in range(start,stop):                    #cells being placed#
-        put = rd.random()
 
-        if cc==stop:                            #only one horizontal row used#
-            break
+    if not threeD:
+        c_num = 0
+        start= (x) ** 2 * (maxrad)
+        stop = (x) ** 2 * (maxrad + 1)
+        step=1
 
-        if border(cc):                          #checks for outofbounds around edges#
-            if checkneighbor(cc):               #check if cell can be placed#
+        print start,stop
+        for cc in range(start,stop,step):                        #cells being placed#
+            put = rd.random()
 
-                if put <= n:
-                    c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
-                    occupy(cc,c_num)
-                    c_num += 1
+            if cc==stop:                                    #only one horizontal row used#
+                break
+
+            if border(cc):                                  #checks for outofbounds around edges#
+                if checkneighbor(cc):                       #check if cell can be placed#
+
+                    if put <= n:
+                        c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
+                        occupy(cc,c_num)
+                        c_num += 1
+    else:
+        setcells()
 
     cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
     C_i, state = cgrad.ini_cell_c()
 
     C_t.append(list(C_i))
     state_t.append(list(state))
+
+def setcells():
+    c_num = 0
+
+    start=0
+    stop1=x**3
+    step1=x**2
+    stop2=x
+    step2=1
+
+
+    for i in range(start, stop1, step1):  # cells being placed#
+        for j in range(start,stop2,step2):
+            cor =radius*x
+            cc=i+j+cor
+            put = rd.random()
+
+            if cc == stop1:  # only one horizontal row used#
+                break
+
+            if border(cc):  # checks for outofbounds around edges#
+                if checkneighbor(cc):  # check if cell can be placed#
+
+                    if put <= n:
+                        c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
+                        occupy(cc, c_num)
+                        c_num += 1
+
+
+
+
 
 def stategamble():                      #prodces random booleanvalue according to place
                                         #usage: setting initial state of cell
@@ -122,6 +159,9 @@ def border(pt):                         #checks for outofbounds around edges #
         print ('hey b_6')
         return False
 
+    if pt >= (ncells) or pt < 0:
+        print ('out')
+        return False
     else:
         print ('hey b_ok')
         return True
@@ -129,10 +169,6 @@ def border(pt):                         #checks for outofbounds around edges #
 def checkneighbor(p):                   #check if cell can be placed#
 
     ind = True
-
-    if p >= (npoints) or p < 0:
-        print ('out')
-        return False
 
     if resident[p]!= 0:
         print('str')
@@ -151,8 +187,8 @@ def outersq(p):
         for b in range(-rad, rad + 1):  #outer quadrate of the circle r=rad (col)
             for l in range(-rad, rad + 1):
 
-                poi = p + b + h * x +  l * x * x        #position in the chain
-                if poi >= npoints:
+                poi = p + l + b * x +  h * x * x        #position in the chain
+                if poi >= ncells:
                     print ('hey f1')
                     return False
                 if poi < 0:
@@ -180,7 +216,7 @@ def occupy(m,id):                              #cellplacement
                 for b in range(-rad,rad+1):     #outer quadrate of the circle r=rad (col)
                     for l in range(-rad, rad + 1):
 
-                        poi = m + b + h * x  + l * x * x  # position in the chain
+                        poi = m + l + b * x  + h * x * x  # position in the chain
                         if poi == m:
                             pass
 
@@ -200,16 +236,29 @@ def force():                                    #calculates movement by forcecal
     for elem in c_ary:
         fx[elem]=0
         fy[elem]=0
+
         if threeD:
             fz[elem]=0
-        for oths in c_ary:
 
+        for oths in c_ary:
+            #reflecting walls if coordinates outside put inside
             if c_ary[elem].xcor <= c_ary[elem].radius:
                 c_ary[elem].xcor = c_ary[elem].radius
+
             if c_ary[elem].ycor <= c_ary[elem].radius:
                 c_ary[elem].ycor = c_ary[elem].radius
+
             if c_ary[elem].zcor <= c_ary[elem].radius:
                 c_ary[elem].zcor = c_ary[elem].radius
+
+            if (c_ary[elem].xcor + c_ary[elem].radius) >= lx:
+                c_ary[elem].xcor = (lx-c_ary[elem].radius)
+
+            if (c_ary[elem].ycor + c_ary[elem].radius) >= ly:
+                c_ary[elem].ycor = (ly-c_ary[elem].radius)
+
+            if (c_ary[elem].zcor + c_ary[elem].radius) >= lz:
+                c_ary[elem].zcor = (lz-c_ary[elem].radius)
 
             sum=np.square(c_ary[oths].xcor-c_ary[elem].xcor)\
             +np.square(c_ary[oths].ycor-c_ary[elem].ycor)\
@@ -251,16 +300,16 @@ def move():                                                 #cells being moved a
         dt = 0.1
     for elem in c_ary:
         grav = -4 * np.pi * np.square(c_ary[elem].radius) * F_g
-        y_cor=max(0,min((c_ary[elem].ycor + dt * fy[elem] + grav),ly))
+        y_cor=max(0,min((c_ary[elem].ycor + dt * fy[elem] + grav),(ly-radius)))
 
-        c_ary[elem].xcor = max(min(c_ary[elem].xcor + dt*fx[elem],lx),0)
+        c_ary[elem].xcor = max(min(c_ary[elem].xcor + dt*fx[elem],(lx-radius)),0)
         c_ary[elem].ycor = max(y_cor,radius)
         if threeD:
-            c_ary[elem].zcor = max(min(c_ary[elem].zcor + dt*fz[elem],lz),0)
+            c_ary[elem].zcor = max(min(c_ary[elem].zcor + dt*fz[elem],(lz-radius)),0)
 
     return thrs
 
-def rdspot(p):      #after muller 1959/Marsaglia 1972 picking random point on sphere uniform
+def rdspot():      #after muller 1959/Marsaglia 1972 picking random point on sphere uniform
 
     x_r = rd.gauss(0, 1)
     y_r = rd.gauss(0, 1)
@@ -278,7 +327,7 @@ def rdspot(p):      #after muller 1959/Marsaglia 1972 picking random point on sp
 
 def divide(p):        #takes rd point and places new cell
 
-    xn,yn,zn=rdspot(p)
+    xn,yn,zn=rdspot()
     xn = max((xn + c_ary[p].xcor),radius)
     yn = max((yn + c_ary[p].ycor),radius)
     if threeD:
@@ -359,20 +408,17 @@ def gridprint (z, C_true):
         picgrid=pres.gridpic(x,k,c_ary,threeD,pos,C_true)
 
         C = picgrid.calc_cval()
-
+        print(C)
         # Variables
         point_data = np.zeros((nx + 1, ny + 1, nz + 1))
         # cell_data = np.zeros((nx, ny, nz))
         distribution = np.zeros((nx, ny, nz))
         for i in range(len(C)):
-            x_dis = i % x+1
-            z_dis = i // ((x+1)**2)
-            y_dis = (i %((x+1) ** 2)) // x
-            if ( max([x_dis,y_dis,z_dis]) <= 11 ):
-                #print (i)
-                point_data[x_dis][y_dis][z_dis]=C[i]
-            else:
-                print(i)
+            x_dis = i % x
+            z_dis = i // ((x)**2)
+            y_dis = (i %((x) ** 2)) // x
+
+            point_data[x_dis][y_dis][z_dis]=C[i]
 
         hl.gridToVTK("c_grid"+str(z), x_c, y_c, z_c, cellData={"distribution": distribution}, pointData={"point_data": point_data})
 
