@@ -9,17 +9,23 @@ import hl
 x=10                             #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.6                         #set on_state cells n probability
-C_on=17.0                         #signalconcentration of activ cel#
+C_on=19.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
 feedback = 1                      #positiv(1) or negative(0) feedback#
 
 radius=1                          #set intial radius of cell
 maxrad=radius*2                   #max r which cell can have before division#
-k=1.0                             #factor how close neighboring cells can be
+
+k=1.0                             #factor how close neighboring cells can be 1.0 just touching
 g_rate=0.2                        #growthrate of radius
 
-F_g = 0.002                       #gravity
-threeD=1
+F_g = 0.002                       #gravity constant
+threeD=1                          #3d or 2d
+
+thres_skr=0.3                     #threshold for skrinking
+
+cell_age=0
+maxcell_age=6
 
 # Dimensions
 nx, ny, nz = x, x, 1
@@ -70,7 +76,7 @@ def initialize():                                       #creats grid on which ce
 
     if not threeD:
         c_num = 0
-        start= (x) ** 2 * (maxrad)
+        start= (x) ** 2 * (radius)
         stop = (x) ** 2 * (maxrad + 1)
         step=1
 
@@ -123,10 +129,6 @@ def setcells():
                         c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
                         occupy(cc, c_num)
                         c_num += 1
-
-
-
-
 
 def stategamble():                      #prodces random booleanvalue according to place
                                         #usage: setting initial state of cell
@@ -342,17 +344,25 @@ def divide(p):        #takes rd point and places new cell
 
 def growth(p):
 
-    c_ary[p].radius = c_ary[p].radius + g_rate
+    if c_ary[p].status:
+        c_ary[p].radius = c_ary[p].radius + g_rate
 
+"""""
+   else:
+        c_ary[p].radius = c_ary[p].radius - g_rate
+
+    if c_ary[p].radius <= 0:
+        c_ary[p].radius = 0.1
+"""""
 def event(step):                                #what happens to cell in time step#
 
     for elem in c_ary.keys():               #keys()cause new created cells do nothing
 
-        if c_ary[elem].radius >= maxrad:    #cell_r big enough -> division#
+        if c_ary[elem].radius > maxrad - 1.0E-6:    #cell_r big enough -> division#
             divide(elem)
 
-        elif c_ary[elem].status:
-            growth(elem)                    #if cell=on -> grows#
+        else:
+            growth(elem)                    #growfunc determines if grow or shrink#
 
     cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
 
@@ -372,6 +382,7 @@ def event(step):                                #what happens to cell in time st
     C_t.append(list(C_i))
 
 def switch_cary(state):                 #updates cell.status
+
     for elem in c_ary:
         c_ary[elem].status = state[elem]
 
@@ -408,7 +419,7 @@ def gridprint (z, C_true):
         picgrid=pres.gridpic(x,k,c_ary,threeD,pos,C_true)
 
         C = picgrid.calc_cval()
-        print(C)
+
         # Variables
         point_data = np.zeros((nx + 1, ny + 1, nz + 1))
         # cell_data = np.zeros((nx, ny, nz))
@@ -430,8 +441,9 @@ def update(end):
     initialize()
 
     for step in time:
-       event(step)
-       pic(step)
+        pic(step)
+        event(step)
+
 
 
 

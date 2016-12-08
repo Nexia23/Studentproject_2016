@@ -164,7 +164,7 @@ class c_grad:
         self.feedback = feedback
         self.c_ary = c_ary
         self.gamma_ = 7.0
-        self.diff_const = 6.0
+        self.diff_const = 7.0
         bruch = float(self.diff_const / self.gamma_)
         self.lambda_ = float(np.sqrt(bruch))
         self.P=2000                         #particlenumber of production

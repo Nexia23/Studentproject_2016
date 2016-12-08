@@ -8,7 +8,7 @@ import random as rd
 #Variablen fuer Cgradient#
 
 gamma_ = 7.0                  #degradations constant#
-diff_const = 1.0              #diffusions constant#
+diff_const = 7.0              #diffusions constant#
 bruch = float(diff_const/gamma_)
 lambda_ = float(math.sqrt(bruch))   #radius of signalcloud of cell#
 
@@ -19,7 +19,7 @@ n=1.0                             #set chance of cells n probability
 place=0.5                         #set on_state cells n probability
 C_on=13.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
-feedback = 0                      #positiv(1) or negative(0) feedback#
+feedback = 1                      #positiv(1) or negative(0) feedback#
 min_cell=5                        #set minimum of cellneigbors for new cellcreation#
 
 
