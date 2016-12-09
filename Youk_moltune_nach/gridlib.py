@@ -6,7 +6,7 @@ import present as pres
 import hl
 
 #Parametersettings#
-x=100                             #sets gridsize
+x=10                             #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.6                         #set on_state cells n probability
 C_on=19.0                         #signalconcentration of activ cel#
@@ -31,9 +31,9 @@ maxcell_age=6
 nx, ny, nz = x, x, 1
 if threeD:
     nz = x
-lx, ly, lz = 100.0, 100.0, 0.1
+lx, ly, lz = 10.0, 10.0, 0.1
 if threeD:
-    lz = 100.0
+    lz = 10.0
 dx, dy, dz = lx/nx, ly/ny, lz/nz
 
 ncells = nx * ny * nz
@@ -460,6 +460,6 @@ def update(end):
 
 #run program
 
-update(100)
+update(10)
 #print(state_t)
 #print(C_t)

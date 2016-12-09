@@ -218,7 +218,7 @@ class c_grad:
 
             conz_i = self.catcher_c(step, C_t, i)
             c_value = c_neighbor + conz_i
-
+            
             self.C_i[i] = c_value
             self.C_print[i] = c_value
 
@@ -240,11 +240,11 @@ class c_grad:
                 elif self.feedback == 0:
                     conz = 1
         if self.ddd:
-            conz=self.conz_r(conz,j)
+            conz=self.conz_r(j)
 
         return conz
 
-    def conz_r(self,c,i):                   #calc c for sphere cell
+    def conz_r(self,i):                   #calc c for sphere cell
 
         top=(self.P*self.c_ary[i].radius)
         down1=(3*np.sqrt(self.diff_const*self.gamma_)*self.c_ary[i].radius)
@@ -311,13 +311,10 @@ class c_grad:
                 elif self.C_i[ci] - self.K <= 0:  # deactive state of autonomous cell#
                     on = False
 
-                if self.c_ary[ci].status:  # if off stays off if on cell can change
-                    if on:
-                        self.state[ci] = 1
-                        self.C_i[ci] = self.C_on
-                    else:
-                        self.state[ci] = 0
-                        self.C_i[ci] = 1
+                #if off stays off if on cell can change
+                if on:
+                    self.state[ci] = 1
+                    self.C_i[ci] = self.C_on
                 else:
                     self.state[ci] = 0
                     self.C_i[ci] = 1
