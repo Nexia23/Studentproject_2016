@@ -6,7 +6,7 @@ import present as pres
 import hl
 
 #Parametersettings#
-x=10                             #sets gridsize
+x=100                             #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.6                         #set on_state cells n probability
 C_on=19.0                         #signalconcentration of activ cel#
@@ -31,9 +31,9 @@ maxcell_age=6
 nx, ny, nz = x, x, 1
 if threeD:
     nz = x
-lx, ly, lz = 10.0, 10.0, 0.1
+lx, ly, lz = 100.0, 100.0, 0.1
 if threeD:
-    lz = 10.0
+    lz = 100.0
 dx, dy, dz = lx/nx, ly/ny, lz/nz
 
 ncells = nx * ny * nz
@@ -54,9 +54,6 @@ pos={}                        #dic for grid [0]=x_axis [1]=y_axis#
 
 ita=20                        #iteration of movefunc, cause explicit procedure
 
-fx = np.zeros(ncells)
-fy = np.zeros(ncells)
-fz = np.zeros(ncells)
 
 def initialize():                                       #creats grid on which cells are placed by chance
     if not threeD:
@@ -102,6 +99,14 @@ def initialize():                                       #creats grid on which ce
 
     C_t.append(list(C_i))
     state_t.append(list(state))
+
+    global fx
+    global fy
+    global fz
+    fx = np.zeros(len(c_ary))
+    fy = np.zeros(len(c_ary))
+    fz = np.zeros(len(c_ary))
+
 
 def setcells():
     c_num = 0
@@ -232,8 +237,13 @@ def occupy(m,id):                              #cellplacement
             resident[m] = c_ary[id].mid
 
 def force():                                    #calculates movement by forcecalc of cells pushing
-
-    thres=np.zeros(ncells)                      #array for saving the fac as threshold
+    global fx
+    global fy
+    global fz
+    thres=np.zeros(len(c_ary))                      #array for saving the fac as threshold
+    fx = np.zeros(len(c_ary))
+    fy = np.zeros(len(c_ary))
+    fz = np.zeros(len(c_ary))
 
     for elem in c_ary:
         fx[elem]=0
@@ -293,7 +303,8 @@ def force():                                    #calculates movement by forcecal
 
 def move():                                                 #cells being moved as forces dictate
 
-    thrs=force()
+    thrs = force()
+
     if not max(np.square(max(fx)),np.square(max(fy)),np.square(max(fz))) == 0:
         dt = 0.1 / np.sqrt(max(np.square(max(fx)),
                        np.square(max(fy)),
@@ -449,6 +460,6 @@ def update(end):
 
 #run program
 
-update(20)
+update(100)
 #print(state_t)
 #print(C_t)
