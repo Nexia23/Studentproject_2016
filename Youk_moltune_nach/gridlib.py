@@ -9,12 +9,13 @@ import hl
 x=10                             #sets gridsize
 n=1.0                             #set chance of cells n probability
 place=0.6                         #set on_state cells n probability
-C_on=19.0                         #signalconcentration of activ cel#
+C_on=10.0                         #signalconcentration of activ cel#
 K =  18.0                         #threshold c#
 feedback = 1                      #positiv(1) or negative(0) feedback#
 
 radius=1                          #set intial radius of cell
-maxrad=radius*2                   #max r which cell can have before division#
+maxrad=2*radius
+maxvolume=2 * 4 * np.pi * radius ** 3      #max r which cell can have before division#
 
 k=1.0                             #factor how close neighboring cells can be 1.0 just touching
 g_rate=0.2                        #growthrate of radius
@@ -52,8 +53,9 @@ resident=np.zeros(npoints)    #spot has cell or not| int references#
 c_ary={}                      #cell-class ref#
 pos={}                        #dic for grid [0]=x_axis [1]=y_axis#
 
-ita=20                        #iteration of movefunc, cause explicit procedure
+ita=40                        #iteration of movefunc, cause explicit procedure
 
+#setup of model and cells
 
 def initialize():                                       #creats grid on which cells are placed by chance
     if not threeD:
@@ -106,7 +108,6 @@ def initialize():                                       #creats grid on which ce
     fx = np.zeros(len(c_ary))
     fy = np.zeros(len(c_ary))
     fz = np.zeros(len(c_ary))
-
 
 def setcells():
     c_num = 0
@@ -236,6 +237,8 @@ def occupy(m,id):                              #cellplacement
         else:
             resident[m] = c_ary[id].mid
 
+#runtime of the model with all its calculations
+
 def force():                                    #calculates movement by forcecalc of cells pushing
     global fx
     global fy
@@ -358,6 +361,24 @@ def growth(p):
     if c_ary[p].status:
         c_ary[p].radius = c_ary[p].radius + g_rate
 
+def chk_vol():
+
+    cvol=0
+
+    for elem in c_ary:
+        cvol = 4 * np.pi * c_ary[elem].radius ** 3 + cvol
+
+    cubus=(lx)*(ly)*(lz)
+
+    print str(cvol)+'******'+str(lx*ly*lz)
+    print ncells
+
+    if cubus - 1.0E-6 > cvol:
+        return True
+    else:
+        return False
+
+
 """""
    else:
         c_ary[p].radius = c_ary[p].radius - g_rate
@@ -365,15 +386,21 @@ def growth(p):
     if c_ary[p].radius <= 0:
         c_ary[p].radius = 0.1
 """""
-def event(step):                                #what happens to cell in time step#
+def event(step):                                #what happens to cell in time step
 
-    for elem in c_ary.keys():               #keys()cause new created cells do nothing
+    print(step)
 
-        if c_ary[elem].radius > maxrad - 1.0E-6:    #cell_r big enough -> division#
-            divide(elem)
+    if chk_vol():
+        for elem in c_ary.keys():               #keys()cause new created cells do nothing
 
-        else:
-            growth(elem)                    #growfunc determines if grow or shrink#
+            cvol = 4 * np.pi * c_ary[elem].radius ** 3
+
+            if cvol > maxvolume - 1.0E-6:    #cell_r big enough -> division#
+
+                divide(elem)
+
+            else:
+                growth(elem)                    #growfunc determines if grow or shrink#
 
     cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
 
@@ -399,7 +426,6 @@ def switch_cary(state):                 #updates cell.status
 
 def pic(a):                     #creats vtu data with cell situation at time step
 
-
     x_list = []
     y_list = []
     z_list = []
@@ -407,8 +433,6 @@ def pic(a):                     #creats vtu data with cell situation at time ste
     F_x = []
     F_y = []
     F_z = []
-
-
 
     vtk_writer = vtktools.VTK_XML_Serial_Unstructured()
 
@@ -454,12 +478,10 @@ def update(end):
     for step in time:
         pic(step)
         event(step)
-
-
+        st=step
+    pic(st)
 
 
 #run program
 
-update(10)
-#print(state_t)
-#print(C_t)
+update(20)

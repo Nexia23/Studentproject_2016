@@ -93,7 +93,6 @@ class cell:
     def __repr__(self):
         return self.name
 
-
 class Molecule:
     """
 
@@ -135,21 +134,7 @@ class Molecule:
 
     def __repr__(self): #string "self.name"		#print(list(object))
         return self.name
-"""""
-    x =  sets gridsize
-    n = set chance of cells n probability
-    place  set on_state cells n probability
-    C_on signalconcentration of activ cell
-    K = threshold c#
-    feedback = positiv(1) or negative(0) feedback
-    #min_cell=5                             #set minimum of cellneigbors for new cellcreation#
-    c_ary = c_ary
-    gamma_ =  degradations constant#
-    diff_const =  diffusions constant#
 
-    lambda_ = float(np.sqrt(bruch))  radius of signalcloud of cell#
-
-"""""
 class c_grad:
 
     def __init__(self, c_num,x,n,place,C_on,K,feedback,c_ary,ddd):
@@ -218,7 +203,7 @@ class c_grad:
 
             conz_i = self.catcher_c(step, C_t, i)
             c_value = c_neighbor + conz_i
-            
+
             self.C_i[i] = c_value
             self.C_print[i] = c_value
 
