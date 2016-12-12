@@ -215,7 +215,7 @@ def outersq(p):
 
 def occupy(m,id):                              #cellplacement
 
-    if isinstance(c_ary[id], cl.cell):       #get cell_r for placement#
+    if isinstance(c_ary[id], cl.Cell):       #get cell_r for placement#
         rad = radius
 
         if maxrad > dx or maxrad > dy:

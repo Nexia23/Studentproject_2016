@@ -93,60 +93,6 @@ class Cell:
     def __repr__(self):
         return self.name
 
-class Molecule:
-    """
-
-    @type name: str
-    @type mass: float
-    """
-
-    def __init__(self, mid, name, mass=0, count=0):
-        self.mid = mid
-        self.name = name
-        self.mass = mass
-        self.count = count
-
-    @property
-    def mid(self):
-        return self.__mid
-
-    @mid.setter
-    def mid(self, value):
-        self.__mid = value
-
-    @property
-    def name(self):
-        return self.__name
-
-    @name.setter
-    def name(self, value):
-        self.__name = value
-
-    @property
-    def mass(self):
-        return self.__mass
-
-    @mass.setter
-    def mass(self, value):
-        if not (isinstance(value, float) or isinstance(value, int)):
-            raise Exception("mass must be numeric")
-        else:
-            self.__mass = value
-
-    @property
-    def count(self):
-        return self.__count
-
-    @count.setter
-    def count(self, value):
-        if not (isinstance(value, float) or isinstance(value, int)):
-            raise Exception("mass must be numeric")
-        else:
-            self.__count = value
-
-    def __repr__(self): #string "self.name"		#print(list(object))
-        return self.name
-
 class C_grad:
 
     def __init__(self, c_num,x,n,place,C_on,K,feedback,c_ary,ddd):
@@ -338,3 +284,115 @@ class C_grad:
                     self.C_i[ci] = 1
 
         return self.C_i, self.state
+
+class Molecule:
+    """
+
+    @type name: str
+    @type mass: float
+    """
+
+    def __init__(self, mid, name, mass=0, count=0):
+        self.mid = mid
+        self.name = name
+        self.mass = mass
+        self.count = count
+
+    @property
+    def mid(self):
+        return self.__mid
+
+    @mid.setter
+    def mid(self, value):
+        self.__mid = value
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+
+    @property
+    def mass(self):
+        return self.__mass
+
+    @mass.setter
+    def mass(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("mass must be numeric")
+        else:
+            self.__mass = value
+
+    @property
+    def count(self):
+        return self.__count
+
+    @count.setter
+    def count(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("mass must be numeric")
+        else:
+            self.__count = value
+
+    def __repr__(self): #string "self.name"		#print(list(object))
+        return self.name
+
+class BioMolecule:
+    """
+    A generic molecule that has basic attributes like name and
+    mass.
+    @type name: str
+    @type mass: float
+    """
+
+    def __init__(self, mid, name, mass=0):
+        self.mid = mid
+        self.name = name
+        self.mass = mass
+
+    @property
+    def mid(self):
+        return self.__mid
+
+    @mid.setter
+    def mid(self, value):
+        self.__mid = value
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+
+    @property
+    def mass(self):
+        return self.__mass
+
+    @mass.setter
+    def mass(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("mass must be numeric")
+        else:
+            self.__mass = value
+
+    def __repr__(self): #string "self.name"
+        return self.name
+
+class BioMoleculeCount:        #new variable: number of molecules of this type
+
+
+    def __init__(self, mid, name, count=0):
+        super(BioMolecule).__init__(mid, name)
+        self.count = count
+
+    @property
+    def count(self):
+        return self.__count
+
+    @count.setter
+    def count(self, value):
+        self.__count = value
