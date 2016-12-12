@@ -90,13 +90,13 @@ def initialize():                                       #creats grid on which ce
                 if checkneighbor(cc):                       #check if cell can be placed#
 
                     if put <= n:
-                        c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
+                        c_ary[c_num] = cl.Cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
                         occupy(cc,c_num)
                         c_num += 1
     else:
         setcells()
 
-    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
+    cgrad = cl.C_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
     C_i, state = cgrad.ini_cell_c()
 
     C_t.append(list(C_i))
@@ -132,7 +132,7 @@ def setcells():
                 if checkneighbor(cc):  # check if cell can be placed#
 
                     if put <= n:
-                        c_ary[c_num] = cl.cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
+                        c_ary[c_num] = cl.Cell(c_num, 'ecoli ', radius, stategamble(), pos[cc][0], pos[cc][1], pos[cc][2])
                         occupy(cc, c_num)
                         c_num += 1
 
@@ -352,7 +352,7 @@ def divide(p):        #takes rd point and places new cell
         zn=2
     c_num=max(c_ary.keys())
 
-    c_ary[c_num+1] = cl.cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, zn)
+    c_ary[c_num+1] = cl.Cell(c_num+1, 'ecoli ', radius, stategamble(), xn, yn, zn)
     c_ary[p].radius = radius
     c_ary[p].status = True
 
@@ -402,7 +402,7 @@ def event(step):                                #what happens to cell in time st
             else:
                 growth(elem)                    #growfunc determines if grow or shrink#
 
-    cgrad = cl.c_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
+    cgrad = cl.C_grad(len(c_ary), x, n, place, C_on, K, feedback, c_ary, threeD)
 
     for i in range(ita):
         thres = move()
@@ -451,7 +451,7 @@ def pic(a):                     #creats vtu data with cell situation at time ste
 
 def gridprint (z, C_true):
 
-        picgrid=pres.gridpic(x,k,c_ary,threeD,pos,C_true)
+        picgrid=pres.Gridpic(x,k,c_ary,threeD,pos,C_true)
 
         C = picgrid.calc_cval()
 

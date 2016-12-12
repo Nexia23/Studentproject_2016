@@ -2,7 +2,7 @@ import numpy as np
 """""
 Class that creats pic of concentration gradient of the whole modleroom
 """""
-class gridpic:
+class Gridpic:
 
     def __init__(self, x, K, c_ary, ddd, pos, C_true):
         # Parametersettings#

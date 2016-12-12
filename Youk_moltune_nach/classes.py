@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class cell:
+class Cell:
     """
     @type name: str(which bacteria)
     @type radius: float
@@ -100,10 +100,11 @@ class Molecule:
     @type mass: float
     """
 
-    def __init__(self, mid, name, mass=0):
+    def __init__(self, mid, name, mass=0, count=0):
         self.mid = mid
         self.name = name
         self.mass = mass
+        self.count = count
 
     @property
     def mid(self):
@@ -132,10 +133,21 @@ class Molecule:
         else:
             self.__mass = value
 
+    @property
+    def count(self):
+        return self.__count
+
+    @count.setter
+    def count(self, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise Exception("mass must be numeric")
+        else:
+            self.__count = value
+
     def __repr__(self): #string "self.name"		#print(list(object))
         return self.name
 
-class c_grad:
+class C_grad:
 
     def __init__(self, c_num,x,n,place,C_on,K,feedback,c_ary,ddd):
         #Parametersettings#
@@ -282,18 +294,22 @@ class c_grad:
 
             if self.ddd:
 
-                top=(1)
-                down1=(self.lambda_*self.c_ary[ci].radius)
-                down2=np.square(self.c_ary[ci].radius)
-                fac=top/(down1+down2)
-                self.K=self.K*fac
+                top1 = (1/self.C_on)
+                top2 = (self.P * self.c_ary[ci].radius)
+                down1 = (3 * np.sqrt(self.diff_const * self.gamma_) * self.c_ary[ci].radius)
+                down2 = self.diff_const * 3
+                fac=top1*top2/(down1+down2)
+
+                K_r=self.K*fac
+            else:
+                K_r = self.K
 
             if self.feedback == 1:  # positiv feedback
 
-                if self.C_i[ci] - self.K > 0:  # active state of autonomous cell#
+                if self.C_i[ci] - K_r > 0:  # active state of autonomous cell#
                     on = True
 
-                elif self.C_i[ci] - self.K <= 0:  # deactive state of autonomous cell#
+                elif self.C_i[ci] - K_r <= 0:  # deactive state of autonomous cell#
                     on = False
 
                 #if off stays off if on cell can change
@@ -306,10 +322,10 @@ class c_grad:
 
             elif self.feedback == 0:  # negative feedback#
 
-                if self.C_i[ci] - self.K > 0:  # deactive state of autonomous cell#
+                if self.C_i[ci] - K_r > 0:  # deactive state of autonomous cell#
                     on = False
 
-                elif self.C_i[ci] - self.K <= 0:  # active state of autonomous cell#
+                elif self.C_i[ci] - K_r <= 0:  # active state of autonomous cell#
                     # print('auto ac')
                     on = True
 
