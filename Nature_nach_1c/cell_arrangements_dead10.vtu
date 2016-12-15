@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
+<UnstructuredGrid>
+<Piece NumberOfCells="0" NumberOfPoints="8">
+<Points>
+<DataArray NumberOfComponents="3" format="ascii" type="Float32">0 0 0 10.36884386203875 1.2 2 38.368071270749091 3.3172455788801321 2 69.072330062486813 3.6403992437668276 2 91.158280951340089 2.9126485354936897 2 29.985048599280262 1.2 2 37.725636037983065 1 2 67.63759464767989 1.4 2 </DataArray>
+</Points>
+<Cells>
+<DataArray Name="connectivity" format="ascii" type="Int32">0</DataArray>
+<DataArray Name="offsets" format="ascii" type="Int32">0</DataArray>
+<DataArray Name="types" format="ascii" type="UInt8">1</DataArray>
+</Cells>
+<PointData>
+<DataArray Name="Points" NumberOfComponents="3" format="ascii" type="Float32">0 0 0 10.36884386203875 1.2 2 38.368071270749091 3.3172455788801321 2 69.072330062486813 3.6403992437668276 2 91.158280951340089 2.9126485354936897 2 29.985048599280262 1.2 2 37.725636037983065 1 2 67.63759464767989 1.4 2 </DataArray>
+<DataArray Name="forces" NumberOfComponents="3" format="ascii" type="Float32">0 0 0 0.0077480936080907871 -0.033770377339334294 0.0 -0.031379545797733686 0.051526448236588453 0.0 -0.018792950339127201 0.032621913856789031 0.0 0.012000339847925919 0.033470054030046575 0.0 -0.005819999530270268 -0.025321721520942895 0.0 0.013173074384289277 -0.011989006903828699 0.0 -0.07690652149993582 0.0 0.0 </DataArray>
+<DataArray Name="radii" format="ascii" type="Float32">0 1.2 1.4 1.2 1 1.2 1 1.4 </DataArray>
+</PointData>
+<CellData/>
+</Piece>
+</UnstructuredGrid>
+</VTKFile>
