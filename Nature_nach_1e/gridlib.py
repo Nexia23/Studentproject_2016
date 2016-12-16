@@ -163,6 +163,7 @@ def setcells():
                                                min(pos[cc][1], radius), maxrad)
                         occupy(cc, c_num)
                         c_num += 1
+
 def stategamble():                      #prodces random booleanvalue according to place
                                         #usage: setting initial state of cell
     hp = rd.random()
